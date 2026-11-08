@@ -1,0 +1,15 @@
+# secrets
+.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# bifrost runtime state (config.db, logs.db) — config.json lives in bifrost/, not here
+bifrost/data/
+
+# staleguard runtime
+*.sqlite3

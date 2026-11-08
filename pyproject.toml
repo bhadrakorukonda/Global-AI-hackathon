@@ -1,0 +1,27 @@
+[project]
+name = "staleguard"
+version = "0.1.0"
+description = "Stale-answer detector in front of the Bifrost LLM gateway, verified live with Tavily."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "httpx>=0.27",
+    "openai>=1.54",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/staleguard"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

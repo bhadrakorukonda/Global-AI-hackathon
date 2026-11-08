@@ -1,0 +1,32 @@
+services:
+  bifrost:
+    image: maximhq/bifrost:v2.4.0
+    ports:
+      # Host port is overridable if 8080 is taken: BIFROST_HOST_PORT=8081 (then set BIFROST_URL to match).
+      - "${BIFROST_HOST_PORT:-8080}:8080"
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8080"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      # App dir holds config.db / logs.db; config.json is mounted read-only into it.
+      - ./bifrost/data:/app/data
+      - ./bifrost/config.json:/app/data/config.json:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Vector store for Bifrost's semantic_cache plugin (needs RediSearch -> redis-stack).
+  redis:
+    image: redis/redis-stack-server:7.4.0-v8
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped

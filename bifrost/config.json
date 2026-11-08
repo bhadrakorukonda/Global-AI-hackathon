@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/maximhq/bifrost/transports/v2.4.0/transports/config.schema.json",
+  "setup_token": "env.BIFROST_SETUP_TOKEN",
+  "client": {
+    "enforce_auth_on_inference": false
+  },
+  "providers": {
+    "gemini": {
+      "keys": [
+        {
+          "name": "gemini-ai-studio",
+          "value": "env.GEMINI_API_KEY",
+          "models": ["*"],
+          "weight": 1.0
+        }
+      ]
+    }
+  },
+  "vector_store": {
+    "enabled": true,
+    "type": "redis",
+    "config": {
+      "addr": "redis:6379"
+    }
+  },
+  "plugins": [
+    {
+      "enabled": false,
+      "name": "semantic_cache",
+      "config": {
+        "provider": "gemini",
+        "embedding_model": "gemini-embedding-001",
+        "dimension": 3072,
+        "ttl": "24h",
+        "threshold": 0.8,
+        "conversation_history_threshold": 3,
+        "exclude_system_prompt": false,
+        "cache_by_model": true,
+        "cache_by_provider": true,
+        "vector_store_namespace": "StaleGuardCache",
+        "default_cache_key": ""
+      }
+    }
+  ]
+}
