@@ -79,7 +79,7 @@ flowchart LR
 - SQLite (verdict cache), via stdlib `sqlite3`, no ORM
 - Streamlit (demo UI)
 - Bifrost `maximhq/bifrost:v2.4.0` via `docker-compose.yml` (pinned tag).
-- LLM provider: **Google Gemini** (AI Studio key, `GEMINI_API_KEY`). `gemini/gemini-3.6-flash` for extract/classify; `gemini/gemini-3.1-pro-preview` for judge/rewrite (**not on the free tier**; fall back to Flash on a free key); `gemini-embedding-001` (3072-dim) for the semantic cache.
+- LLM provider: **Google Gemini** (AI Studio key, `GEMINI_API_KEY`). `gemini/gemini-3.6-flash` for extract/classify; judge/rewrite also on `gemini/gemini-3.6-flash` for now (free tier). `gemini/gemini-3.1-pro-preview` is the upgrade once billing is on; Pro's free-tier quota is 0. Model tiering in the demo is shown via config: the stages use separate `SMALL_MODEL`/`JUDGE_MODEL` settings; `gemini-embedding-001` (3072-dim) for the semantic cache.
 - Semantic cache vector store: **Redis Stack** (`redis/redis-stack-server`, needs RediSearch). It replaced Weaviate: it's the store Bifrost recommends, needs one config field, serves both direct and semantic modes, and avoids Weaviate's port-8080 clash. Cache TTL is **24h** (the default is 5m, which would expire mid-demo).
 - Tavily: `basic` depth (1 credit; `advanced` = 2), `max_results=5`, `include_published_date=True`.
 - pytest

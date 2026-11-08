@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     bifrost_setup_token: SecretStr | None = None
 
     small_model: str = "gemini/gemini-3.6-flash"
-    judge_model: str = "gemini/gemini-3.1-pro-preview"
+    judge_model: str = "gemini/gemini-3.6-flash"  # free tier; Pro needs billing
 
     tavily_api_key: SecretStr | None = None
 
