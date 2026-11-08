@@ -161,7 +161,7 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
 | Judge marks things stale on weak evidence | Evidence required; `UNVERIFIABLE` is the default; confidence threshold; prefer dated sources |
 | Latency (several seconds per answer) | Fast path, parallel Tavily calls (`asyncio.gather`), verdict cache, cap claims verified per answer (e.g. 5 most volatile) |
 | Tavily credit burn during dev | Verdict cache on from day one; `basic` depth by default; record and replay fixtures in tests |
-| Bifrost cache API differs from docs | Checked 2026-11-09 (`docs/bifrost-notes.md`): `x-bf-cache-key`, `extra_fields.cache_debug`, and `DELETE /api/cache/clear/{cacheId}` all exist; `/api/*` needs `X-Bifrost-Setup-Token`. Still to confirm live in step 2: whether `cache_id` is returned on a miss. Fallback: `DELETE /api/cache/clear-by-key/{key}`, or bypass the cache for that key, and say so in the README |
+| Bifrost cache API differs from docs | Checked 2026-11-09 (`docs/bifrost-notes.md`): `x-bf-cache-key`, `extra_fields.cache_debug`, and `DELETE /api/cache/clear/{cacheId}` all exist; `/api/*` needs `X-Bifrost-Setup-Token`. Verified live in step 2: `cache_id` is returned on misses too, and eviction works (it is idempotent and returns 200 even for unknown ids). Fallback: `DELETE /api/cache/clear-by-key/{key}`, or bypass the cache for that key, and say so in the README |
 | Semantic cache setup eats time | Redis Stack replaces Weaviate. If semantic mode isn't working within an hour, use Bifrost's direct (exact-match) mode (`dimension: 1`, no provider) and keep moving |
 | Gemini free-tier rate limits / no Pro access | Judge model is an env var; fall back to Flash; verdict cache and fixtures keep calls low |
 

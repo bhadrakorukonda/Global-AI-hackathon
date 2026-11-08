@@ -1,0 +1,23 @@
+{
+    "is_bifrost_error": false,
+    "status_code": 404,
+    "error": {
+        "type": "NOT_FOUND",
+        "code": "404",
+        "message": "models/no-such-model is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods."
+    },
+    "extra_fields": {
+        "routing_info": {
+            "provider": "gemini",
+            "model": "no-such-model",
+            "key": "gemini-ai-studio",
+            "requested_provider": "gemini",
+            "requested_model": "no-such-model"
+        },
+        "provider": "gemini",
+        "original_model_requested": "no-such-model",
+        "resolved_model_used": "no-such-model",
+        "request_type": "chat_completion",
+        "latency": 280
+    }
+}

@@ -1,0 +1,83 @@
+{
+    "id": "C9DwasSCFpKpz7sPxonfoQs",
+    "choices": [
+        {
+            "index": 0,
+            "finish_reason": "stop",
+            "logprobs": null,
+            "message": {
+                "role": "assistant",
+                "content": "Canberra",
+                "refusal": null,
+                "reasoning_details": [
+                    {
+                        "index": 0,
+                        "type": "reasoning.text",
+                        "text": "Here's my thought process, as it went:\n\n**Quick Retrieval: Australia's Capital**\n\nOkay, so the question is, what's the capital of Australia? Seems straightforward enough. First, I immediately zero in on the core of the problem. Simple question - what is the capital? I then rapidly sift through my mental database of geographic facts. *Australia...capital...Canberra.* The answer flashes up. Before I get to far, I have to consider any other potential factors at play. *One word.* Alright, I've got to make sure my answer is a single word. Therefore, **Canberra** is the answer.\n\n\n"
+                    },
+                    {
+                        "index": 1,
+                        "type": "reasoning.encrypted",
+                        "signature": "EtUCCtICAWkUfRM+vS14ptkg5osjQg8JNoJwp80bwgaMhsuUZCL2bsBOTzHxbyoZff15zt5JRWp32lWLUSs+vlQ/z6uYoyHFCU/si2xwSqGTnMefEJbsMuGBNvcPntjbBbBz7QPVp9WXO4qo5BaKyJI4T2K0+iO8jvUIStQ9uWyCpHI92Ew59ybmdPiMa9UZE/OPHNhd17pocqqrBAuKBNZ9+dHoLayouoaRiDtMFy0yelEEXJkdIzUTm2SEQ3LiMQvgfcGfyQ9ZSEUznohvALnXNRqFxWKmr4jEqrvas7tEdbe+50sMxIWH9HKQ8gUBPwiEicrGCncGffTc7kSdvZ/Wxh/m+KGUV1G/5AOlax2UXDEeJgqo8qvZ6hCyB5kCS14bKyzw78NEAOvMF+OaS5iy19yF8dwI5tiw1NWV7UzzXI0zIbkemUUB9E5lLkafQabpMGFTCNE="
+                    }
+                ]
+            }
+        }
+    ],
+    "created": 1794166797,
+    "model": "gemini-3.6-flash",
+    "object": "chat.completion",
+    "service_tier": "default",
+    "system_fingerprint": "",
+    "usage": {
+        "prompt_tokens": 11,
+        "prompt_tokens_details": {
+            "text_tokens": 11,
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+        },
+        "completion_tokens": 60,
+        "completion_tokens_details": {
+            "reasoning_tokens": 58
+        },
+        "total_tokens": 71
+    },
+    "extra_fields": {
+        "request_type": "chat_completion",
+        "routing_info": {
+            "provider": "gemini",
+            "model": "gemini-3.6-flash",
+            "key": "gemini-ai-studio",
+            "requested_provider": "gemini",
+            "requested_model": "gemini-3.6-flash"
+        },
+        "provider": "gemini",
+        "original_model_requested": "gemini-3.6-flash",
+        "resolved_model_used": "gemini-3.6-flash",
+        "latency": 1986,
+        "upstream_latency": 0,
+        "chunk_index": 0,
+        "cache_debug": {
+            "cache_hit": true,
+            "cache_id": "9a40b08a-e760-59ac-8a14-d9f6d6554892",
+            "hit_type": "semantic",
+            "requested_provider": "gemini",
+            "requested_model": "gemini-3.6-flash",
+            "provider_used": "gemini",
+            "model_used": "gemini-embedding-001",
+            "input_tokens": 0,
+            "threshold": 0.8,
+            "similarity": 0.9636667966843,
+            "cache_hit_latency": 535
+        },
+        "provider_response_headers": {
+            "Accept-Ranges": "none",
+            "Server-Timing": "gfet4t7; dur=1842",
+            "Vary": "X-Origin, Referer, Origin,Accept-Encoding",
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "SAMEORIGIN",
+            "X-Gemini-Service-Tier": "standard",
+            "X-Xss-Protection": "0"
+        }
+    }
+}

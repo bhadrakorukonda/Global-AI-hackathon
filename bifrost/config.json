@@ -25,7 +25,7 @@
   },
   "plugins": [
     {
-      "enabled": false,
+      "enabled": true,
       "name": "semantic_cache",
       "config": {
         "provider": "gemini",

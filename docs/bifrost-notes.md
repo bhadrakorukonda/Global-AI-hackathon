@@ -108,12 +108,18 @@ cache_hit_latency: int?
 ```
 - The same data is also exposed as `x-bifrost-cache-*` **response headers**. That's useful if the JSON field ever gets stripped.
 - Streaming: only the final chunk carries it.
-- **TODO-verify-live (step 2):** that the HTTP JSON response puts this under top-level `extra_fields` (the `ExtraFields` tag on the chat response struct wasn't in the source excerpt I read), and whether `cache_id` is present on a **miss** (i.e. the ID of the entry just written).
+- ✅ **Verified live (step 2, 2026-11-09)** with `gemini-embedding-001`; recorded in `tests/fixtures/bifrost_chat_*.json`:
+  - miss: `{"cache_hit": false, "cache_id": "<uuid>"}`, so **`cache_id` is present on a miss** (the entry just written).
+  - exact repeat: `hit_type: "direct"`, same `cache_id`, `cache_hit_latency` ~1–3 ms.
+  - paraphrase ("Which city is Australia's capital?"): `hit_type: "semantic"`, `similarity: 0.96`, `model_used: gemini-embedding-001`, same `cache_id`, ~530 ms (embedding call).
+  - No `x-bf-cache-key` means no `cache_debug` at all (cache bypassed).
+  - **`cache_id` is deterministic**: after eviction, re-asking recreates the *same* id. So the id identifies the request, not the stored answer.
 
 ### Eviction ✅ (matches SPEC)
 Confirmed in `transports/bifrost-http/handlers/cache.go`:
 - `DELETE /api/cache/clear/{cacheId}` removes one entry. Returns 400 if the plugin isn't loaded or the ID is missing, and 500 on failure.
 - `DELETE /api/cache/clear-by-key/{cacheKey}` removes all entries under a cache key (URL-encode it). Useful as a coarser fallback.
+- ✅ **Verified live (step 2):** without `X-Bifrost-Setup-Token` you get `401`. With it you get `200 {"message":"Cache cleared successfully"}`, and the next identical request is a **miss**. ⚠ It also returns 200 for already-evicted or nonexistent ids, so a 200 is not proof anything was removed. To confirm an eviction, re-query with `x-bf-cache-no-store: true` and check for a miss.
 - Disabling the plugin via `PUT /api/plugins/semantic_cache` doesn't clear entries.
 
 ## 3. Tavily (`tavily-python`)
