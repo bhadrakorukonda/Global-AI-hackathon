@@ -1,0 +1,55 @@
+{
+  "query": "OpenAI CEO",
+  "follow_up_questions": null,
+  "answer": "The sources indicate that Sam Altman is the CEO of OpenAI. However, there are conflicting details regarding his tenure. While some sources state that Altman has been CEO since 2019, others mention that he was fired as CEO in November 2023 but was later reinstated. Additionally, there are mentions of Altman speaking at various events and conferences in 2026, suggesting his active role in the company. The sources don't provide a definitive answer on his current status as CEO.",
+  "images": [],
+  "results": [
+    {
+      "url": "https://abc7news.com/post/openai-ceo-sam-altman-claims-artificial-intelligence-singularity-has-arrived/19588207",
+      "title": "OpenAI CEO Sam Altman claims artificial intelligence singularity has arrived - ABC7 San Francisco",
+      "content": "ByMax Zahn ABCNews logo\n\nTuesday, July 28, 2026\n\nSAN FRANCISCO -- OpenAI CEO Sam Altman claims artificial intelligence has reached a long-sought threshold in which the technology can improve itself, unleashing rapid progress that may prove difficult to fully control.\n\nThe milestone, known as the singularity, promises significant benefits for society, Altman said, appearing to rebuke concern among critics about the societal threat posed by wide adoption of AI. [...] \"We're now, like, in the singularity,\" Altman said in an episode of a podcast called \"Relentless,\" which came out on Saturday. \"Now we're actually in the moment that we used to talk about at the lunch table in a very not-serious way.\"\n\n\"I've been waiting for this my whole life, and I think it's going to be incredible, hugely positive, awesome for the world,\" Altman added.\n\nThe remarks came days after OpenAI revealed what it described as a first-of-its kind autonomous AI cyber attack. [...] The technology seized on Hugging Face as a potential source of models and data sets necessary to complete the test, OpenAI said.\n\n\"The primary lesson from this incident is that model security and safety must keep pace with rapidly advancing capabilities,\" the company said.",
+      "score": 0.918663,
+      "published_date": "Tue, 28 Jul 2026 04:42:00 GMT",
+      "raw_content": null,
+      "id": "acb8a5-00"
+    },
+    {
+      "url": "https://www.britannica.com/money/Sam-Altman",
+      "title": "Sam Altman | Biography, OpenAI, ChatGPT, & Microsoft | Britannica Money",
+      "content": "Sam Altman is CEO of OpenAI, which partnered with Microsoft. Microsoft invested in OpenAI, provided cloud computing through its Azure platform, and integrated OpenAI’s technology into its products.\n\nSam Altman sits on stage in a suit, gesturing with both hands while speaking at the APEC CEO Summit in San Francisco, with a blue geometric backdrop behind him.\n\nOpen full sized image\n\nSam Altman is CEO of OpenAI, the artificial intelligence company that developed ChatGPT. [...] © Justin Sullivan/Getty Images\n\nSam Altman is an American entrepreneur who was president of the start-up accelerator Y Combinator from 2014 to 2019 and chief executive officer of the artificial intelligence company OpenAI since 2019. He has been compared to tech visionaries, including Steve Jobs and Bill Gates, and is known for his belief that artificial general intelligence (AGI) could match or surpass human capabilities.\n\n## Early life [...] On November 17, 2023, OpenAI’s board of directors fired Altman as CEO because “he was not consistently candid in his communications with the board.” Chair Greg Brockman also stepped down. Days of tumult followed. Most OpenAI employees signed a letter to board members demanding their resignation and threatening to leave unless Altman and Brockman were reinstated. One member of the board, computer scientist Ilya Sutskever, signed the letter, saying on X (formerly Twitter) that he regretted his",
+      "score": 0.8896154,
+      "published_date": "Mon, 18 May 2026 21:19:02 GMT",
+      "raw_content": null,
+      "id": "d3be99-01"
+    },
+    {
+      "url": "https://apnews.com/article/sam-altman-openai-conference-dots-agent-77b6b8888145869206996d7509d24256",
+      "title": "OpenAI CEO Sam Altman announces agent Dots, GPT-6.1 Sol and other updates | AP News",
+      "content": "2 of 4|\nOpen AI CEO Sam Altman speaks at the OpenAI DevDay 2026 conference, Tuesday, Sept. 29, 2026, in San Francisco. (AP Photo/Jeff Chiu)\n\nLicense this photo\n\nRead More\n\n2 of 4\n\nOpen AI CEO Sam Altman speaks at the OpenAI DevDay 2026 conference, Tuesday, Sept. 29, 2026, in San Francisco. (AP Photo/Jeff Chiu)\n\nLicense this photo\n\n Add AP News on Google  Add AP News as your preferred source to see more of our stories on Google. Share \n\n Share [...] Read More\n\n3 of 4\n\nOpen AI CEO Sam Altman speaks at the OpenAI DevDay 2026 conference, Tuesday, Sept. 29, 2026, in San Francisco. (AP Photo/Jeff Chiu)\n\nLicense this photo\n\n Add AP News on Google  Add AP News as your preferred source to see more of our stories on Google. Share \n\n Share \n\n   Facebook\n    Copy Link copied \n     Print \n   Email\n   X\n   LinkedIn\n   Bluesky\n   Flipboard\n   Pinterest\n   Reddit\n\nRead More [...] Image 13: Open AI CEO Sam Altman speaks at the OpenAI DevDay 2026 conference, Tuesday, Sept. 29, 2026, in San Francisco. (AP Photo/Jeff Chiu)\n\n1 of 4|\nOpen AI CEO Sam Altman speaks at the OpenAI DevDay 2026 conference, Tuesday, Sept. 29, 2026, in San Francisco. (AP Photo/Jeff Chiu)\n\nLicense this photo\n\nRead More\n\n1 of 4\n\nOpen AI CEO Sam Altman speaks at the OpenAI DevDay 2026 conference, Tuesday, Sept. 29, 2026, in San Francisco. (AP Photo/Jeff Chiu)\n\nLicense this photo",
+      "score": 0.853046,
+      "published_date": "Tue, 29 Sep 2026 18:51:35 GMT",
+      "raw_content": null,
+      "id": "60b134-02"
+    },
+    {
+      "url": "https://finance.yahoo.com/technology/article/openai-ceo-sam-altman-on-ai-we-could-lose-control-091146594.html",
+      "title": "OpenAI CEO Sam Altman on AI: 'We could lose control'",
+      "content": "1. Crypto\n\n   Crypto\n2. AI\n\n   AI\n\nYahoo Finance\n\n# OpenAI CEO Sam Altman on AI: 'We could lose control'\n\nBrian Sozzi  and Daniel Howley\n\n3 min read\n\nOpenAI (OPAI.PVT) CEO Sam Altman suddenly seems so disturbed by the nightmare-inducing AI monster he has helped create that he is having a hard time sleeping.",
+      "score": 0.8449346,
+      "published_date": "Mon, 14 Sep 2026 00:00:00 GMT",
+      "raw_content": null,
+      "id": "ece801-03"
+    },
+    {
+      "url": "https://www.cnbc.com/2026/09/30/hawley-openai-sam-altman-rogue-ai.html",
+      "title": "Hawley: OpenAI CEO Sam Altman declined to testify at rogue AI hearing",
+      "content": "OpenAI CEO Sam Altman declined an invitation to appear at a Senate subcommittee hearing on Wednesday on the risks of rogue artificial intelligence, according to Sen. Josh Hawley, R-Mo. [...] A spokesperson for OpenAI noted that Altman received the invitation to testify on Friday, just five days ahead of the hearing. Altman on Tuesday appeared at the company's annual DevDay developer conference in San Francisco as other AI officials — including OpenAI President Greg Brockman — were in Washington meeting with President Donald Trump. [...] \"OpenAI is deeply engaged with Congress on federal policies to advance AI safety, including through dozens of meetings in recent weeks with members of both parties in both chambers,\" the spokesperson said. \"We look forward to continuing to work constructively and proactively with Senator Hawley and members of Congress on federal AI safety legislation that materially raises the safety bar.\"",
+      "score": 0.838376,
+      "published_date": "Wed, 30 Sep 2026 19:34:11 GMT",
+      "raw_content": null,
+      "id": "839ac5-04"
+    }
+  ],
+  "response_time": 2.44,
+  "request_id": "ec4d8000-a576-4000-bdd4-90e92d43946d"
+}

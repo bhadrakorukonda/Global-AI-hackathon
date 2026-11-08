@@ -1,0 +1,55 @@
+{
+  "query": "latest stable Python version release",
+  "follow_up_questions": null,
+  "answer": "As of today, November 8, 2026, the latest stable Python version release is Python 3.15, according to the sources. The Wikipedia page on the History of Python states that Python 3.15 is the latest stable release receiving full bug-fix and security updates. The Python.org source releases page also lists Python 3.15.1 as the latest Python 3 release.",
+  "images": [],
+  "results": [
+    {
+      "url": "https://agirlamonggeeks.com/what-is-stable-python-version",
+      "title": "What Is the Stable Python Version and Why Does It Matter?",
+      "score": 0.8967681,
+      "content": "## Examples of Recent Stable Python Versions\n\n| Version | Release Date | Notable Features | Support Status |\n ---  --- |\n| Python 3.11.4 | June 2024 | Faster CPython, Exception Groups, Precise Error Locations | Active Stable |\n| Python 3.10.12 | May 2024 | Structural Pattern Matching, Parenthesized Context Managers | Maintenance |\n| Python 3.9.17 | April 2024 | Dictionary Merge & Update Operators, Flexible Function and Variable Annotations | Security Fixes Only | [...] The term “stable Python version” refers to the latest official release of the Python programming language that has undergone thorough testing and validation, making it suitable for production environments. Stable versions are considered reliable, with minimal bugs and security vulnerabilities, ensuring consistent performance across various platforms and applications. [...] ## Understanding Python’s Release Cycle and Stability\n\nPython’s development follows a well-defined release cycle designed to balance the of new features with the maintenance of stability and reliability. The stable Python version refers to the latest official release that has undergone rigorous testing and is deemed suitable for production environments. This version includes all finalized features, security patches, and performance improvements.",
+      "raw_content": null,
+      "published_date": "Fri, 04 Jul 2025 20:09:07 GMT",
+      "id": "8bc08f-00"
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/History_of_Python",
+      "title": "History of Python - Wikipedia",
+      "content": "As of October 2026( Python 3.15 is the latest stable release. This version currently receives full bug-fix and security updates, while Python 3.14—released in October 2025—will continue to receive bug-fixes until October 2027, and after that will only receive security fixes until its end-of-life in 2030. Python 3.11 is the oldest supported branch of Python (albeit in the 'security support' phase).\n\n## Early history\n\n[edit]",
+      "score": 0.88372874,
+      "raw_content": null,
+      "published_date": "Sat, 08 Aug 2026 00:00:00 GMT",
+      "id": "fa0992-01"
+    },
+    {
+      "url": "https://www.liquidweb.com/blog/latest-python-version",
+      "title": "Latest Python Version (2025) – What's New in Python 3.14?",
+      "content": "The latest major version, Python 3.14 was officially released on October 7, 2025.\n\nLet’s explore the key features of Python’s current version, how to download and install it, and what this release means for developers.\n\n## Get premium VPS hosting\n\nHigh-performance VPS hosting that delivers unrivaled power\n\nExplore VPS hosting\n\n## What’s the latest Python version?\n\nThe latest stable version of Python is 3.14\n\nPython 3.14 was released on October 7, 2025 with several improvements: [...] Download the latest Python version today and start exploring its new features on Liquid Web’s diversity of packages for dedicated hosting, VPS hosting, bare metal servers, GPU hosting, and cloud servers,\n\nExplore all hosting\n\nBuild a server now\n\n## Frequently asked questions\n\nYes, Python 3.14 is the latest stable release. We recommend testing this version in a staging or development environment before deploying in order to identify any refactoring required. [...] | Python 3.4 | March 16, 2014 | `enum` module, pathlib, async IO (`asyncio`) |\n| Python 3.3 | September 29, 2012 | `yield from, u\"` string literals reintroduced |\n| Python 3.2 | February 20, 2011 | `concurrent.futures`, PEP 384 (Stable ABI) |\n| Python 3.1 | June 27, 2009 | OrderedDict, io module rewritten |\n| Python 3.0 | December 3, 2008 | Print function, integer division changes, Unicode by default |\n| Python 2.7 | July 3, 2010 | Last release of Python 2, backported features from Python 3 |",
+      "score": 0.8820324,
+      "raw_content": null,
+      "published_date": "Tue, 07 Oct 2025 00:00:00 GMT",
+      "id": "30fe5a-02"
+    },
+    {
+      "url": "https://stackoverflow.com/questions/70378786/how-to-get-the-version-number-of-the-latest-stable-release-of-python-via-single",
+      "title": "How to get the version number of the latest stable release of Python via single HTTP request?",
+      "content": "Prints:\n\n```\n3.13.3\n```\n\nShare\n\nShare a link to this answer \n\nCopy linkCC BY-SA 4.0\n\nShort permalink to this answer\n\nImprove this answer\n\n Follow \n\nFollow this answer to receive notifications\n\n answered Apr 24, 2025 at 12:40\n\nImage 9: Booboo's user avatar\n\nBooboo\n\n47k 4 4 gold badges 48 48 silver badges 75 75 bronze badges\n\n## 1 Comment\n\nAdd a comment\n\nImage 10\n\nBill_Stewart\n\nBill_StewartJul 7 at 19:37 [...] 2021-12-16T18:41:04.65Z+00:00\n\n0\n\nReply\n\n   Copy link\n\nImage 8\n\nhippietrail\n\nhippietrailFeb 7, 2024 at 6:08\n\nThat's pretty nice but it's a little bit laggy. For instance it lists `3.12.1 (07 Dec 2023)` as the latest rather than `3.12.2` which was just released today or yesterday.\n\n2024-02-07T06:08:27.513Z+00:00\n\n0\n\nReply\n\n   Copy link\n\n\n>>> for m in re.finditer(r'Download Python (\\d+\\.\\d+.\\d+)', resp.text): print(m)\n...\n3.13.3\n3.13.3\n3.13.3\n3.13.3\n>>>\n``` [...] 4 \n\nThis question does not show any research effort; it is unclear or not useful\n\nSave this question.\n\n\n\n and it also provides an API for it.\n\nReading the documentation for the API given here  it looks like the first element of the json list is always the latest stable version. Therefore you can get the latest stable version string by using\n\nUse with AI Copy\n\n```python\nimport requests\nresult = requests.get(\"\nparsed_result = result.json()\nversion_string =  parsed_result[\"latest\"]\n```",
+      "score": 0.77261686,
+      "raw_content": null,
+      "published_date": "Mon, 13 Apr 2026 10:17:03 GMT",
+      "id": "5eb2ca-03"
+    },
+    {
+      "url": "https://www.python.org/downloads/source",
+      "title": "Python Source Releases | Python.org",
+      "content": "Notice: This page displays a fallback because interactive scripts did not run. Possible causes include disabled JavaScript or failure to load scripts or stylesheets.\n\npython™\n\nDonate\n\n≡ Menu\n\n A A\n  + Smaller\n  + Larger\n  + Reset\n\n Socialize\n  + LinkedIn\n  + Mastodon\n  + Chat on IRC\n  + Twitter\n\n Python>>>\n Downloads>>>\n Source code\n\n# Python Source Releases\n\n Latest Python 3 Release - Python 3.15.1\n\n## Stable Releases [...] Python 2.7.15 - May 1, 2018\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 3.6.5 - March 28, 2018\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 3.4.8 - Feb. 5, 2018\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 3.5.5 - Feb. 5, 2018\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 3.6.4 - Dec. 19, 2017\n  + Download Gzipped source tarball [...] Python 3.5.7rc1 - March 4, 2019\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 3.8.0a2 - Feb. 25, 2019\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 2.7.16rc1 - Feb. 17, 2019\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 3.8.0a1 - Feb. 3, 2019\n  + Download Gzipped source tarball\n  + Download XZ compressed source tarball\n Python 3.7.2rc1 - Dec. 11, 2018",
+      "score": 0.75377536,
+      "raw_content": null,
+      "published_date": "Thu, 09 Mar 2006 00:00:00 GMT",
+      "id": "e819b2-04"
+    }
+  ],
+  "response_time": 2.55,
+  "request_id": "3219f038-cd99-45db-9ace-c47860f7dd14"
+}

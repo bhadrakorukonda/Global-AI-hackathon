@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     judge_model: str = "gemini/gemini-3.6-flash"  # free tier; Pro needs billing
 
     tavily_api_key: SecretStr | None = None
+    # Cap on claims verified per answer (most volatile first) — bounds latency and Tavily credits.
+    max_claims_per_answer: int = 5
 
     @property
     def bifrost_openai_base_url(self) -> str:
