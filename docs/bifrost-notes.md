@@ -19,6 +19,9 @@ Confirmed against a running `v2.4.0` and `transports/config.schema.json`:
 - With auth enforcement off, the OpenAI SDK's mandatory `Authorization: Bearer <anything>` is ignored. Verified with a dummy value.
 - `/health` is unauthenticated and returns `{"components":{"db_pings":"ok"},"status":"ok"}`. The image ships its own Docker healthcheck.
 - Bootstrap takes about 25 s (DB migrations + model catalog), so poll `/health`.
+- **Confirmed live (2026-11-09, real key):** a successful chat response carries top-level `extra_fields` (`request_type`, `routing_info{provider,model,key}`, `provider`, `resolved_model_used`, `latency`, `upstream_latency`, `provider_response_headers`). `openai` SDK: `resp.to_dict()["extra_fields"]`.
+- **Gemini Flash thinks by default:** a 2-word reply used 138 of 142 completion tokens on reasoning (~2 s). Set `reasoning_effort` low/none for extract/classify in step 3.
+- **Free-tier key + `gemini-3.1-pro-preview` → `429`**, quota `limit: 0` for gemini-3.1-pro. Confirms Pro is paid-only.
 - Error responses also carry top-level `extra_fields` (`provider`, `original_model_requested`, `resolved_model_used`, `request_type`, `error_type`). That's evidence that success responses use the same top-level key.
 
 ### Providers schema (Gemini)
