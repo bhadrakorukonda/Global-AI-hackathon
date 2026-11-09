@@ -43,6 +43,8 @@ class OpenAIChatBackend:
             model=model,
             messages=messages,  # type: ignore[arg-type]
             response_format={"type": "json_object"},
+            # Deterministic as possible: stable claim wording keeps verdict-cache keys stable across runs.
+            temperature=0,
             **extra,  # type: ignore[arg-type]
         )
         return LLMCompletion(

@@ -1,6 +1,6 @@
-"""Smoke test for step 3: POST /verify on a few answers (live Gemini via Bifrost + live Tavily).
+"""Smoke test for steps 3-4: POST /verify on a few answers (live Gemini via Bifrost + live Tavily).
 
-Spends ~1 Tavily credit per volatile claim. Usage (StaleGuard running on :8000):
+Spends ~1 Tavily credit per volatile claim not already in the verdict cache; run twice to see cache hits. Usage (StaleGuard running on :8000):
     uv run python scripts/smoke_verify.py
     uv run python scripts/smoke_verify.py --text "Your answer text here"
 """
@@ -23,11 +23,11 @@ RESET = "\033[0m"
 def show(label: str, report: dict) -> None:
     print(f"\n=== {label}: {report['verdict_summary'].upper()}  "
           f"(extracted {report['claims_extracted']}, checked {report['claims_checked']}, "
-          f"tavily {report['tavily_calls']}, {report['latency_ms']} ms, tokens {report['tokens_by_stage']})")
+          f"tavily {report['tavily_calls']}, cache hits {report['verdict_cache_hits']}, {report['latency_ms']} ms, tokens {report['tokens_by_stage']})")
     for v in report["claims"]:
         c = v["claim"]
         print(f"  {COLOR.get(v['verdict'], '')}{v['verdict']:12}{RESET} [{c['claim_class']}/{c['classified_by']}] "
-              f"conf={v['confidence']:.2f}  {c['text']}")
+              f"conf={v['confidence']:.2f}{' (cached)' if v['from_cache'] else ''}  {c['text']}")
         if v["corrected_claim"]:
             print(f"      -> {v['corrected_claim']}")
         print(f"      {v['rationale']}")

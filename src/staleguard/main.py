@@ -29,6 +29,7 @@ from staleguard.config import Settings, get_settings
 from staleguard.llm import LLMOutputError, OpenAIChatBackend
 from staleguard.pipeline import Pipeline, PipelineDeps
 from staleguard.schemas import HealthResponse, Report, StaleGuardStatus, VerifyRequest
+from staleguard.verdict_cache import VerdictCache
 
 __all__ = ["app"]
 
@@ -49,6 +50,7 @@ def build_pipeline(settings: Settings) -> Pipeline | None:
             small_model=settings.small_model,
             judge_model=settings.judge_model,
             max_claims=settings.max_claims_per_answer,
+            verdict_cache=VerdictCache(settings.verdict_cache_path) if settings.verdict_cache_enabled else None,
         )
     )
 
@@ -62,6 +64,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         yield
     finally:
         await app.state.bifrost_http.aclose()
+        if app.state.pipeline is not None and app.state.pipeline.deps.verdict_cache is not None:
+            app.state.pipeline.deps.verdict_cache.close()
 
 
 app = FastAPI(title="StaleGuard", version=__version__, lifespan=lifespan)

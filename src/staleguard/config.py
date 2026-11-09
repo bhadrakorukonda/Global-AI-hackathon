@@ -13,12 +13,15 @@ class Settings(BaseSettings):
     # Sent as X-Bifrost-Setup-Token on Bifrost /api/* calls (e.g. cache eviction).
     bifrost_setup_token: SecretStr | None = None
 
-    small_model: str = "gemini/gemini-3.6-flash"
+    small_model: str = "gemini/gemini-3.5-flash-lite"
     judge_model: str = "gemini/gemini-3.6-flash"  # free tier; Pro needs billing
 
     tavily_api_key: SecretStr | None = None
     # Cap on claims verified per answer (most volatile first) — bounds latency and Tavily credits.
     max_claims_per_answer: int = 5
+    # SQLite verdict cache. Disable for the eval ablation ("verify every claim").
+    verdict_cache_enabled: bool = True
+    verdict_cache_path: str = "data/verdicts.sqlite3"
 
     @property
     def bifrost_openai_base_url(self) -> str:

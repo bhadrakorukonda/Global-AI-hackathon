@@ -4,8 +4,8 @@ from datetime import date, timedelta
 
 import pytest
 
-from staleguard.pipeline.classify import CLASS_TTL, classify_by_rules, select_for_verification
-from staleguard.schemas import Claim, ClaimClass
+from staleguard.pipeline.classify import classify_by_rules, select_for_verification
+from staleguard.schemas import CLASS_TTL, Claim, ClaimClass
 
 TODAY = date(2026, 11, 9)
 

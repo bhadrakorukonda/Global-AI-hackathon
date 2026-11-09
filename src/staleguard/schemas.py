@@ -1,11 +1,13 @@
 """Pydantic models for every StaleGuard input/output: HTTP, Bifrost passthrough, and the verification pipeline."""
 
+from datetime import timedelta
 from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 __all__ = [
+    "CLASS_TTL",
     "CacheDebug",
     "Claim",
     "ClaimClass",
@@ -88,6 +90,19 @@ class ClaimClass(StrEnum):
     STATIC = "static"
 
 
+# Re-verify TTL per class (SPEC §2). None = never verified. Drives claim ranking and the verdict cache.
+CLASS_TTL: dict[ClaimClass, timedelta | None] = {
+    ClaimClass.PRICE: timedelta(days=1),
+    ClaimClass.EVENT_STATUS: timedelta(days=1),
+    ClaimClass.RELATIVE_TIME: timedelta(days=1),
+    ClaimClass.VERSION: timedelta(days=7),
+    ClaimClass.POLICY: timedelta(days=14),
+    ClaimClass.ROLE: timedelta(days=30),
+    ClaimClass.STATISTIC: timedelta(days=30),
+    ClaimClass.STATIC: None,
+}
+
+
 class Verdict(StrEnum):
     CURRENT = "CURRENT"
     STALE = "STALE"
@@ -131,6 +146,7 @@ class ClaimVerdict(BaseModel):
     rationale: str = ""
     evidence: list[Evidence] = Field(default_factory=list, description="Only the evidence the judge cited.")
     search_query: str | None = None
+    from_cache: bool = Field(default=False, description="Served from the verdict cache (no Tavily call, no judge call).")
 
 
 class Report(BaseModel):
@@ -143,6 +159,7 @@ class Report(BaseModel):
     latency_ms: int
     tokens_by_stage: dict[str, int]
     tavily_calls: int
+    verdict_cache_hits: int = 0
     cache_evicted: bool = False
 
 

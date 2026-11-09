@@ -80,7 +80,7 @@ flowchart LR
 - SQLite (verdict cache), via stdlib `sqlite3`, no ORM
 - Streamlit (demo UI)
 - Bifrost `maximhq/bifrost:v2.4.0` via `docker-compose.yml` (pinned tag).
-- LLM provider: **Google Gemini** (AI Studio key, `GEMINI_API_KEY`). `gemini/gemini-3.6-flash` for extract/classify; judge/rewrite also on `gemini/gemini-3.6-flash` for now (free tier). `gemini/gemini-3.1-pro-preview` is the upgrade once billing is on; Pro's free-tier quota is 0. Model tiering in the demo is shown via config: the stages use separate `SMALL_MODEL`/`JUDGE_MODEL` settings; `gemini-embedding-001` (3072-dim) for the semantic cache.
+- LLM provider: **Google Gemini** (AI Studio key, `GEMINI_API_KEY`). `gemini/gemini-3.5-flash-lite` for extract/classify (free tier limits are per model, so splitting stages across models multiplies throughput); `gemini/gemini-3.6-flash` for judge/rewrite. On the free tier Flash allows only 20 requests/day, so dev runs override `JUDGE_MODEL` (see docs/bifrost-notes.md). `gemini/gemini-3.1-pro-preview` is the upgrade once billing is on; Pro's free-tier quota is 0. Model tiering in the demo is shown via config: the stages use separate `SMALL_MODEL`/`JUDGE_MODEL` settings; `gemini-embedding-001` (3072-dim) for the semantic cache.
 - Semantic cache vector store: **Redis Stack** (`redis/redis-stack-server`, needs RediSearch). It replaced Weaviate: it's the store Bifrost recommends, needs one config field, serves both direct and semantic modes, and avoids Weaviate's port-8080 clash. Cache TTL is **24h** (the default is 5m, which would expire mid-demo).
 - Tavily: `basic` depth (1 credit; `advanced` = 2), `max_results=5`, `include_published_date=True`.
 - pytest
@@ -144,7 +144,7 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
 1. Scaffold, docker-compose (Bifrost + Redis), config, `.env.example`, health check. Verify a plain call through Bifrost works.
 2. Transparent proxy: StaleGuard → Bifrost passthrough, `x-bf-cache-key` forwarding, capture `cache_debug`.
 3. `/verify` with extract → filter → verify → judge, `annotate` mode only. Unit tests on the classifier rules. Tavily calls per §3 Verify (`max_results=5` explicit, `include_published_date=True`, no `days`).
-4. Verdict cache plus fast path.
+4. Verdict cache plus fast path. *Implemented:* SQLite (`data/verdicts.sqlite3`). The key is a word-set normalization of the claim plus the trusted-domain policy, because the extractor rewords claims between runs. UNVERIFIABLE is kept ≤1 day, failed searches are never cached, and LLM calls use temperature 0. `VERDICT_CACHE_ENABLED=false` turns it off for the ablation.
 5. Wire the pipeline into the proxy; add `rewrite` and `block` modes; cache eviction.
 6. Eval dataset scaffold + `run_eval.py` + ablation. (**The user fills and verifies the dataset rows.**)
 7. Streamlit demo.

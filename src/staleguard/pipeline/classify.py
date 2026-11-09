@@ -7,25 +7,12 @@ the LLM in one batched call, which may answer `static`.
 import json
 import re
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 
 from staleguard.llm import ChatBackend, UsageTracker, structured_call
-from staleguard.schemas import Claim, ClaimClass, ClassifyLLMOutput
+from staleguard.schemas import CLASS_TTL, Claim, ClaimClass, ClassifyLLMOutput
 
-__all__ = ["CLASS_TTL", "classify_claims", "classify_by_rules", "select_for_verification"]
-
-# Re-verify TTL per class (SPEC §2). None = never verified. Used for ranking now, verdict cache in step 4.
-CLASS_TTL: dict[ClaimClass, timedelta | None] = {
-    ClaimClass.PRICE: timedelta(days=1),
-    ClaimClass.EVENT_STATUS: timedelta(days=1),
-    ClaimClass.RELATIVE_TIME: timedelta(days=1),
-    ClaimClass.VERSION: timedelta(days=7),
-    ClaimClass.POLICY: timedelta(days=14),
-    ClaimClass.ROLE: timedelta(days=30),
-    ClaimClass.STATISTIC: timedelta(days=30),
-    ClaimClass.STATIC: None,
-}
-
+__all__ = ["classify_claims", "classify_by_rules", "select_for_verification"]
 
 @dataclass(frozen=True)
 class _Rule:

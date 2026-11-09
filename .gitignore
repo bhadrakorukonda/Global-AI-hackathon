@@ -13,3 +13,6 @@ bifrost/data/
 
 # staleguard runtime
 *.sqlite3
+
+# staleguard runtime data (verdict cache)
+/data/

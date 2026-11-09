@@ -43,6 +43,11 @@ Gemini (AI Studio) is a first-class provider: config key `gemini`, model prefix 
 | judge / rewrite | `gemini-3.1-pro-preview` (preview; only current Pro) | ❌ **paid only** |
 | cheaper alt | `gemini-3.5-flash-lite` (stable) | ✅ |
 | cache embeddings | `gemini-embedding-001` | ✅ |
+- **Free-tier limits hit live (2026-11-09).** They are per model per project, and the docs don't publish them, so these come from 429 bodies:
+  - `gemini-3.6-flash`: **5 requests/min, 20 requests/day**. Too few for the judge in dev, the eval or demo rehearsals.
+  - `gemini-3.5-flash-lite`: works for extract/classify/judge, and was not throttled across ~20 calls in a few minutes. Exact limits unknown.
+  - A 429 for the daily quota is still retried by Bifrost (`max_retries: 3`), so it fails after ~45 s of futile backoff.
+- Bifrost `providers.gemini.network_config`: `max_retries: 3`, `retry_backoff_initial: 5000`, `retry_backoff_max: 30000`. Verified: a per-minute 429 on the judge was retried transparently and succeeded after ~60 s. ⚠ Setting `network_config` partially **zeroes the fields you leave out** (`default_request_timeout_in_seconds` became 0), so all timeouts are now set explicitly.
 - Embeddings default to **3072 dims** (128–3072 configurable). `gemini-embedding-001` needs manual normalization below 3072, so we use 3072 and avoid the question. `gemini-embedding-2` (multimodal) auto-normalizes.
 
 ### Chat call

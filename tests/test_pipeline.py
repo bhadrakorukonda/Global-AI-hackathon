@@ -10,7 +10,8 @@ from staleguard.llm import LLMOutputError, UsageTracker, structured_call
 from staleguard.pipeline import Pipeline, PipelineDeps
 from staleguard.pipeline.extract import strip_code
 from staleguard.pipeline.verify import normalize_date, search_params
-from staleguard.schemas import Claim, ClaimClass, ExtractLLMOutput, Verdict, VerifyRequest
+from staleguard.schemas import Claim, ClaimClass, ClaimVerdict, ExtractLLMOutput, Verdict, VerifyRequest
+from staleguard.verdict_cache import VerdictCache
 
 TODAY = date(2026, 11, 9)
 PY_CLAIM = "The latest stable version of Python is 3.12."
@@ -121,6 +122,58 @@ def test_claim_cap_limits_tavily_calls():
     tavily = FakeTavily(default=load_fixture("tavily/general_python_version.json"))
     report = run(make_pipeline(llm, tavily, max_claims=3), "prices...")
     assert len(tavily.calls) == 3 and report.claims_checked == 3
+
+
+def _cached_pipeline(llm: FakeLLM, tavily: FakeTavily, cache: VerdictCache) -> Pipeline:
+    return Pipeline(PipelineDeps(llm=llm, tavily=tavily, small_model="s", judge_model="j", verdict_cache=cache, today=lambda: TODAY))
+
+
+CEO_JUDGE = {"verdicts": [{"id": 1, "verdict": "CURRENT", "evidence_ids": [1], "confidence": 0.9}]}
+
+
+def test_second_run_is_served_from_verdict_cache():
+    cache = VerdictCache(":memory:")
+    tavily = FakeTavily({CEO_CLAIM: load_fixture("tavily/news_openai_ceo.json")})
+    llm = FakeLLM(extract=[{"claims": [CEO_CLAIM]}, {"claims": ["sam altman is the CEO of OpenAI"]}], judge=[CEO_JUDGE])
+    pipeline = _cached_pipeline(llm, tavily, cache)
+
+    first = run(pipeline, "Sam Altman is OpenAI's CEO.")
+    assert first.tavily_calls == 1 and first.verdict_cache_hits == 0
+    assert not first.claims[0].from_cache
+
+    second = run(pipeline, "Sam Altman is OpenAI's CEO.")
+    assert second.tavily_calls == 0 and second.verdict_cache_hits == 1
+    [v] = second.claims
+    assert v.from_cache and v.verdict is Verdict.CURRENT
+    assert v.claim.text == "sam altman is the CEO of OpenAI"  # this answer's wording, cached judgement
+    assert len(tavily.calls) == 1
+    assert llm.stages() == ["extract", "judge", "extract"]  # no second judge call
+    assert "judge" not in second.tokens_by_stage
+
+
+def test_search_failures_are_not_cached():
+    cache = VerdictCache(":memory:")
+    llm = FakeLLM(extract=[{"claims": [CEO_CLAIM]}, {"claims": [CEO_CLAIM]}])
+    tavily = FakeTavily(fail=True)
+    pipeline = _cached_pipeline(llm, tavily, cache)
+    run(pipeline, "x")
+    second = run(pipeline, "x")
+    assert second.verdict_cache_hits == 0 and len(tavily.calls) == 2
+    assert cache.stats()["total"] == 0
+
+
+def test_mixed_cached_and_fresh_claims_are_merged_in_order():
+    cache = VerdictCache(":memory:")
+    cache.put(ClaimVerdict(claim=Claim(id=9, text=CEO_CLAIM, claim_class=ClaimClass.ROLE), verdict=Verdict.CURRENT, confidence=0.9))
+    llm = FakeLLM(
+        extract=[{"claims": [PY_CLAIM, CEO_CLAIM]}],
+        judge=[{"verdicts": [{"id": 1, "verdict": "STALE", "corrected_claim": "3.14", "evidence_ids": [1], "confidence": 0.9}]}],
+    )
+    tavily = FakeTavily(default=load_fixture("tavily/general_python_version.json"))
+    report = run(_cached_pipeline(llm, tavily, cache), "...")
+    assert [(v.claim.id, v.from_cache) for v in report.claims] == [(1, False), (2, True)]
+    assert [q for q, _ in tavily.calls] == [PY_CLAIM]
+    assert report.verdict_summary == "stale"
 
 
 def test_search_params_defaults():
