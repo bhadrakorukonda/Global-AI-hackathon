@@ -80,7 +80,7 @@ flowchart LR
 - SQLite (verdict cache), via stdlib `sqlite3`, no ORM
 - Streamlit (demo UI)
 - Bifrost `maximhq/bifrost:v2.4.0` via `docker-compose.yml` (pinned tag).
-- LLM provider: **Google Gemini** (AI Studio key, `GEMINI_API_KEY`). `gemini/gemini-3.5-flash-lite` for extract/classify (free tier limits are per model, so splitting stages across models multiplies throughput); `gemini/gemini-3.6-flash` for judge/rewrite. On the free tier Flash allows only 20 requests/day, so dev runs override `JUDGE_MODEL` (see docs/bifrost-notes.md). `gemini/gemini-3.1-pro-preview` is the upgrade once billing is on; Pro's free-tier quota is 0. Model tiering in the demo is shown via config: the stages use separate `SMALL_MODEL`/`JUDGE_MODEL` settings; `gemini-embedding-001` (3072-dim) for the semantic cache.
+- LLM provider: **Google Gemini** (AI Studio key, `GEMINI_API_KEY`). `gemini/gemini-3.5-flash-lite` for extract/classify (free tier limits are per model, so splitting stages across models multiplies throughput); **Groq `groq/openai/gpt-oss-120b`** for judge/rewrite (`GROQ_API_KEY`). It was chosen because Gemini Flash's free tier is only 20 requests/day and Pro's is 0. A second provider also enables the Bifrost failover demo. See docs/bifrost-notes.md for limits. Model tiering in the demo is shown via config: the stages use separate `SMALL_MODEL`/`JUDGE_MODEL` settings; `gemini-embedding-001` (3072-dim) for the semantic cache.
 - Semantic cache vector store: **Redis Stack** (`redis/redis-stack-server`, needs RediSearch). It replaced Weaviate: it's the store Bifrost recommends, needs one config field, serves both direct and semantic modes, and avoids Weaviate's port-8080 clash. Cache TTL is **24h** (the default is 5m, which would expire mid-demo).
 - Tavily: `basic` depth (1 credit; `advanced` = 2), `max_results=5`, `include_published_date=True`.
 - pytest
@@ -168,6 +168,6 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
 
 ## 12. Open decisions (owner: Bhadra)
 - [ ] Final project name
-- [x] LLM provider: Google Gemini (see §4). Secondary/failover provider: TBD
+- [x] LLM provider: Google Gemini (see §4). Secondary provider: Groq (judge model; failover wiring planned with step 5)
 - [ ] Demo domain emphasis: general tech facts (easiest to verify), or add a healthcare-guidelines example with a trusted-domain policy
 - [ ] Solo or team

@@ -39,9 +39,9 @@ Gemini (AI Studio) is a first-class provider: config key `gemini`, model prefix 
 ### Gemini models (ai.google.dev / aistudio.google.com docs, checked 2026-11-09)
 | Use | Model | Free tier |
 |---|---|---|
-| extract / classify | `gemini-3.6-flash` (stable) | ✅ |
-| judge / rewrite | `gemini-3.1-pro-preview` (preview; only current Pro) | ❌ **paid only** |
-| cheaper alt | `gemini-3.5-flash-lite` (stable) | ✅ |
+| extract / classify (was) | `gemini-3.6-flash` (stable) | ✅ (20 RPD) |
+| judge / rewrite | `gemini-3.1-pro-preview` (preview; only current Pro) | ❌ **paid only**, so the judge moved to Groq (below) |
+| **extract / classify (now)** | `gemini-3.5-flash-lite` (stable) | ✅ |
 | cache embeddings | `gemini-embedding-001` | ✅ |
 - **Free-tier limits hit live (2026-11-09).** They are per model per project, and the docs don't publish them, so these come from 429 bodies:
   - `gemini-3.6-flash`: **5 requests/min, 20 requests/day**. Too few for the judge in dev, the eval or demo rehearsals.
@@ -49,6 +49,15 @@ Gemini (AI Studio) is a first-class provider: config key `gemini`, model prefix 
   - A 429 for the daily quota is still retried by Bifrost (`max_retries: 3`), so it fails after ~45 s of futile backoff.
 - Bifrost `providers.gemini.network_config`: `max_retries: 3`, `retry_backoff_initial: 5000`, `retry_backoff_max: 30000`. Verified: a per-minute 429 on the judge was retried transparently and succeeded after ~60 s. ⚠ Setting `network_config` partially **zeroes the fields you leave out** (`default_request_timeout_in_seconds` became 0), so all timeouts are now set explicitly.
 - Embeddings default to **3072 dims** (128–3072 configurable). `gemini-embedding-001` needs manual normalization below 3072, so we use 3072 and avoid the question. `gemini-embedding-2` (multimodal) auto-normalizes.
+
+### Groq provider (judge model), checked 2026-11-09
+- Bifrost docs (docs.getbifrost.ai/providers/supported-providers/groq): provider key `groq`, chat + streaming supported, `reasoning_effort` is passed through. `prompt_cache_key`, `verbosity`, `store` and `service_tier` are silently dropped. Embeddings are **not** supported, so the semantic cache stays on Gemini.
+- Config: `providers.groq.keys[0].value = "env.GROQ_API_KEY"`, with its own full `network_config` (retries 3, backoff 2000–20000 ms).
+- Models live on the key (`GET api.groq.com/openai/v1/models`): `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `qwen/qwen3.8-27b` (all 131K context), plus small/speech models. Addressed through Bifrost as `groq/openai/gpt-oss-120b`.
+- Verified live through Bifrost: `response_format: json_object`, `temperature: 0` and `reasoning_effort: "low"` all work on the three models above. Each returned a correct STALE verdict and correction on a probe in 0.3–1.0 s.
+- Rate limits (console.groq.com/docs/rate-limits; table is for the base plan, so confirm on the account's limits page): each of these models has **30 RPM, 1K RPD, 8K TPM, 200K TPD**. Limits are per model.
+- ⚠ Tokens, not requests, are the binding limit. A batched judge call over 2 claims with 5 snippets each used ~3.5–3.9K tokens, so 8K TPM is about 2 judge calls/min and 200K TPD about 50 judge calls/day.
+- **Judge = `groq/openai/gpt-oss-120b`.** Live smoke run: corrections were "Python 3.14" and "GPT-5 is OpenAI's newest model" with correct citations. Cold verify is 5.9–6.5 s (Flash-Lite judge: 3.2–3.4 s).
 
 ### Chat call
 `POST /v1/chat/completions`, OpenAI format. Model is `provider/model` (e.g. `gemini/gemini-3.6-flash`). A bare name also resolves via the model catalog, but we always use the prefixed form.

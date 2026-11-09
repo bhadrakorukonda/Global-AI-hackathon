@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     bifrost_setup_token: SecretStr | None = None
 
     small_model: str = "gemini/gemini-3.5-flash-lite"
-    judge_model: str = "gemini/gemini-3.6-flash"  # free tier; Pro needs billing
+    judge_model: str = "groq/openai/gpt-oss-120b"  # Groq free tier: 30 RPM / 1K RPD
 
     tavily_api_key: SecretStr | None = None
     # Cap on claims verified per answer (most volatile first) — bounds latency and Tavily credits.

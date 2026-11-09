@@ -23,6 +23,25 @@
         "retry_backoff_initial": 5000,
         "retry_backoff_max": 30000
       }
+    },
+    "groq": {
+      "keys": [
+        {
+          "name": "groq-free",
+          "value": "env.GROQ_API_KEY",
+          "models": ["*"],
+          "weight": 1.0
+        }
+      ],
+      "network_config": {
+        "default_request_timeout_in_seconds": 120,
+        "stream_idle_timeout_in_seconds": 60,
+        "keep_alive_timeout_in_seconds": 30,
+        "max_conns_per_host": 5000,
+        "max_retries": 3,
+        "retry_backoff_initial": 2000,
+        "retry_backoff_max": 20000
+      }
     }
   },
   "vector_store": {

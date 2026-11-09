@@ -1,6 +1,6 @@
 """Smoke test: one plain chat completion through Bifrost using the OpenAI SDK.
 
-Usage:  uv run python scripts/smoke_chat.py [--model gemini/gemini-3.6-flash]
+Usage:  uv run python scripts/smoke_chat.py [--model groq/openai/gpt-oss-120b]
 """
 
 import argparse
