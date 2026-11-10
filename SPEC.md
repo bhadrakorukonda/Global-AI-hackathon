@@ -162,7 +162,15 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
    - It runs only with `--yes`; without it, it prints a cost estimate.
    - It records which judge model actually answered, since failover can mix them.
    - The chart is added once real results exist.
-7. Streamlit demo.
+7. Streamlit demo. *Implemented:*
+   - `demo/app.py` (UI) is a plain HTTP client of the running proxy, so the demo exercises the real product path. `demo/guard_view.py` holds the requests and response parsing, tested in `tests/test_demo_view.py`.
+   - **One call per question.** The left pane shows the model's answer (from the model or Bifrost's cache; `original_answer` after a rewrite/block). The right pane shows what the client received. There is no second raw call, which would cost double and could answer differently.
+   - The sidebar holds the mode, the answering model, a Bifrost cache-key toggle, trusted domains, and the §7 demo-script buttons: 1 training-data staleness, 2 seed cache → paraphrase hit → evict, 2b re-ask, 3 static question / fast path.
+   - Each turn shows a status line (verdict, action, Bifrost hit/miss and similarity, eviction), claim cards colored by verdict with corrections and dated evidence links, and a cost footer (added latency, Tavily searches, tokens per stage, models that answered).
+   - Run: `uv run streamlit run demo/app.py` (Streamlit is in the `demo` dependency group, installed by default).
+   - Known limits (live, 2026-11-11):
+     - The fast path still costs two sequential small-model calls (~8 s). Merging extract and classify into one call would roughly halve it (not done: it changes the pipeline).
+     - The judge can pick a stale correction when a claim's own evidence predates the change (Node "Active LTS" → 24 instead of 26). The prompt now tells it that sources speak as of their dates; sharing evidence across an answer's claims would fix it properly.
 8. README: problem, architecture diagram, setup (copy-paste runnable), how Bifrost and Tavily are each used, eval results, limitations.
 
 ## 10. Non-goals for the hackathon

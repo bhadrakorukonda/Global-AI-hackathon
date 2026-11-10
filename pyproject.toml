@@ -16,6 +16,9 @@ dependencies = [
 ]
 
 [dependency-groups]
+demo = [
+    "streamlit>=1.67.0",
+]
 dev = ["pytest>=8.3"]
 
 [build-system]
@@ -27,4 +30,7 @@ packages = ["src/staleguard"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["tests"]
+pythonpath = ["tests", "demo"]
+
+[tool.uv]
+default-groups = ["dev", "demo"]  # `uv run streamlit run demo/app.py` works after a plain `uv sync`
