@@ -131,6 +131,7 @@ class Pipeline:
             claims_checked=len(final.get("selected", [])),
             latency_ms=round((time.perf_counter() - started) * 1000),
             tokens_by_stage=usage.snapshot(),
+            models_by_stage=usage.models(),
             tavily_calls=len(final.get("searches", [])),
             verdict_cache_hits=len(cached),
         )

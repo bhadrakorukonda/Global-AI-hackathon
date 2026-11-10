@@ -62,6 +62,17 @@ Gemini (AI Studio) is a first-class provider: config key `gemini`, model prefix 
 ### Chat call
 `POST /v1/chat/completions`, OpenAI format. Model is `provider/model` (e.g. `gemini/gemini-3.6-flash`). A bare name also resolves via the model catalog, but we always use the prefixed form.
 
+### Failover: request-level `fallbacks` ✅ (docs.getbifrost.ai/features/fallbacks; verified live 2026-11-10)
+- Body field `"fallbacks": ["provider/model", ...]`, tried in order. With the OpenAI SDK, send it via `extra_body`. There is no config-level default, so StaleGuard sends it on its own internal calls (`SMALL_MODEL_FALLBACKS`, `JUDGE_MODEL_FALLBACKS`).
+- Fallback happens only **after the primary's retries are used up** (`network_config.max_retries`), whatever the error. The exceptions are client cancellation and catalog-added fallbacks on a caller fault.
+- The response's `extra_fields.routing_info` gives `provider`, `model`, `is_fallback`, `primary_provider` and `primary_model`. StaleGuard records the model that actually answered each stage in `Report.models_by_stage`.
+- Verified live:
+  - `gemini/no-such-model-xyz` with fallbacks `["groq/openai/gpt-oss-20b"]` was answered by Groq in 1.0 s, with `is_fallback: true`.
+  - In the step-5 smoke run, the judge on `groq/openai/gpt-oss-120b` hit Groq's 8K TPM, and Bifrost served it from `groq/openai/gpt-oss-20b` with no error surfaced to the client.
+
+### Response content can be a list of parts ⚠ (found live)
+- With Gemini, Bifrost returns `choices[0].message.content` as a **list** of `{"type":"text","text":...}` parts rather than a string, even for plain-text replies. The OpenAI SDK passes the list through unvalidated. `llm.message_text()` joins the parts. When StaleGuard replaces an answer (rewrite/block), it writes a plain string.
+
 ## 2. Semantic cache plugin
 
 ```json

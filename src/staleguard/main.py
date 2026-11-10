@@ -19,23 +19,22 @@ from tavily import AsyncTavilyClient
 from staleguard import __version__
 from staleguard.bifrost_client import (
     check_bifrost,
-    forward_chat,
     forwardable_response_headers,
     make_http_client,
     make_llm_client,
     stream_chat,
 )
 from staleguard.config import Settings, get_settings
+from staleguard.guard import DOMAINS_HEADER, MODE_HEADER, STATUS_HEADER, guard_chat, parse_domains, parse_mode
 from staleguard.llm import LLMOutputError, OpenAIChatBackend
 from staleguard.pipeline import Pipeline, PipelineDeps
-from staleguard.schemas import HealthResponse, Report, StaleGuardStatus, VerifyRequest
+from staleguard.schemas import HealthResponse, Report, VerifyRequest
 from staleguard.verdict_cache import VerdictCache
 
 __all__ = ["app"]
 
 log = logging.getLogger("staleguard")
 
-STATUS_HEADER = "x-staleguard-status"
 
 
 def build_pipeline(settings: Settings) -> Pipeline | None:
@@ -45,7 +44,10 @@ def build_pipeline(settings: Settings) -> Pipeline | None:
         return None
     return Pipeline(
         PipelineDeps(
-            llm=OpenAIChatBackend(make_llm_client(settings)),
+            llm=OpenAIChatBackend(
+                make_llm_client(settings),
+                fallbacks={settings.small_model: settings.small_model_fallbacks, settings.judge_model: settings.judge_model_fallbacks},
+            ),
             tavily=AsyncTavilyClient(settings.tavily_api_key.get_secret_value()),
             small_model=settings.small_model,
             judge_model=settings.judge_model,
@@ -75,8 +77,12 @@ def get_bifrost_http(request: Request) -> httpx.AsyncClient:
     return request.app.state.bifrost_http
 
 
-def get_pipeline(request: Request) -> Pipeline:
-    pipeline: Pipeline | None = getattr(request.app.state, "pipeline", None)
+def get_optional_pipeline(request: Request) -> Pipeline | None:
+    """None when Tavily isn't configured: the proxy then passes answers through unverified."""
+    return getattr(request.app.state, "pipeline", None)
+
+
+def get_pipeline(pipeline: Pipeline | None = Depends(get_optional_pipeline)) -> Pipeline:
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Verification unavailable: TAVILY_API_KEY is not configured.")
     return pipeline
@@ -109,13 +115,22 @@ async def verify(req: VerifyRequest, pipeline: Pipeline = Depends(get_pipeline))
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request, http: httpx.AsyncClient = Depends(get_bifrost_http)) -> Response:
+async def chat_completions(
+    request: Request,
+    http: httpx.AsyncClient = Depends(get_bifrost_http),
+    pipeline: Pipeline | None = Depends(get_optional_pipeline),
+    settings: Settings = Depends(get_settings),
+) -> Response:
     try:
         body: Any = await request.json()
     except ValueError:
         return _openai_error(400, "Request body must be JSON.", "invalid_request_error")
     if not isinstance(body, dict):
         return _openai_error(400, "Request body must be a JSON object.", "invalid_request_error")
+    try:
+        mode = parse_mode(request.headers.get(MODE_HEADER), settings.default_mode)
+    except ValueError as exc:
+        return _openai_error(400, str(exc), "invalid_request_error")
 
     try:
         if body.get("stream"):
@@ -129,15 +144,17 @@ async def chat_completions(request: Request, http: httpx.AsyncClient = Depends(g
                 headers=headers,
             )
 
-        result = await forward_chat(http, body, request.headers)
+        result = await guard_chat(
+            http=http,
+            pipeline=pipeline,
+            settings=settings,
+            body=body,
+            request_headers=request.headers,
+            mode=mode,
+            include_domains=parse_domains(request.headers.get(DOMAINS_HEADER)),
+        )
     except httpx.HTTPError as exc:
         log.warning("Bifrost unreachable: %s", exc)
         return _openai_error(502, f"Bifrost gateway unreachable: {type(exc).__name__}", "bifrost_unreachable")
 
-    if result.cache_debug is not None:
-        log.info(
-            "bifrost cache: hit=%s type=%s id=%s",
-            result.cache_debug.cache_hit, result.cache_debug.hit_type, result.cache_debug.cache_id,
-        )
-    status: StaleGuardStatus = "skipped"  # step 5 replaces this with the pipeline verdict
-    return JSONResponse(status_code=result.status_code, content=result.body, headers=result.headers | {STATUS_HEADER: status})
+    return JSONResponse(status_code=result.status_code, content=result.body, headers=result.headers)

@@ -145,7 +145,14 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
 2. Transparent proxy: StaleGuard → Bifrost passthrough, `x-bf-cache-key` forwarding, capture `cache_debug`.
 3. `/verify` with extract → filter → verify → judge, `annotate` mode only. Unit tests on the classifier rules. Tavily calls per §3 Verify (`max_results=5` explicit, `include_published_date=True`, no `days`).
 4. Verdict cache plus fast path. *Implemented:* SQLite (`data/verdicts.sqlite3`). The key is a word-set normalization of the claim plus the trusted-domain policy, because the extractor rewords claims between runs. UNVERIFIABLE is kept ≤1 day, failed searches are never cached, and LLM calls use temperature 0. `VERDICT_CACHE_ENABLED=false` turns it off for the ablation.
-5. Wire the pipeline into the proxy; add `rewrite` and `block` modes; cache eviction.
+5. Wire the pipeline into the proxy; add `rewrite` and `block` modes; cache eviction. *Implemented:*
+   - `staleguard/guard.py` (service) handles forward → verify → act → evict. `pipeline/act.py` holds the rewrite (judge model, prompt `rewrite.md`) and block (deterministic refusal, no LLM) logic.
+   - Headers in: `x-sg-mode`, and `x-sg-include-domains` (comma-separated trusted domains). Headers out: `x-staleguard-status`, `-claims-checked`, `-action`, `-cache-evicted`, `-error`.
+   - rewrite/block act only on STALE claims with a correction and confidence ≥ `STALE_CONFIDENCE_THRESHOLD` (0.7). annotate reports everything.
+   - **Eviction also fires on a cache miss** whose answer is STALE: Bifrost has just cached that answer under the returned `cache_id`. Eviction ignores the threshold.
+   - **Fail open:** if verification or rewrite fails, the client gets Bifrost's answer, marked `skipped` or annotated, with `x-staleguard-error`.
+   - **Failover:** internal calls send Bifrost `fallbacks` across providers. `staleguard.models_by_stage` shows which model actually answered.
+   - Live demo script: `scripts/smoke_guard.py`.
 6. Eval dataset scaffold + `run_eval.py` + ablation. (**The user fills and verifies the dataset rows.**)
 7. Streamlit demo.
 8. README: problem, architecture diagram, setup (copy-paste runnable), how Bifrost and Tavily are each used, eval results, limitations.
@@ -168,6 +175,6 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
 
 ## 12. Open decisions (owner: Bhadra)
 - [ ] Final project name
-- [x] LLM provider: Google Gemini (see §4). Secondary provider: Groq (judge model; failover wiring planned with step 5)
+- [x] LLM provider: Google Gemini (see §4). Secondary provider: Groq (judge model, and failover target via Bifrost `fallbacks`)
 - [ ] Demo domain emphasis: general tech facts (easiest to verify), or add a healthcare-guidelines example with a trusted-domain policy
 - [ ] Solo or team

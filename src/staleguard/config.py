@@ -1,6 +1,7 @@
 """Settings loaded from environment / .env. Secrets live only in .env."""
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,6 +16,10 @@ class Settings(BaseSettings):
 
     small_model: str = "gemini/gemini-3.5-flash-lite"
     judge_model: str = "groq/openai/gpt-oss-120b"  # Groq free tier: 30 RPM / 1K RPD
+    # Bifrost request-level failover (body field `fallbacks`), tried in order after the primary's retries.
+    # Cross-provider so one provider's quota or outage doesn't stop verification. Env: JSON list.
+    small_model_fallbacks: list[str] = ["groq/openai/gpt-oss-20b"]
+    judge_model_fallbacks: list[str] = ["groq/openai/gpt-oss-20b", "gemini/gemini-3.5-flash-lite"]
 
     tavily_api_key: SecretStr | None = None
     # Cap on claims verified per answer (most volatile first) — bounds latency and Tavily credits.
@@ -22,6 +27,11 @@ class Settings(BaseSettings):
     # SQLite verdict cache. Disable for the eval ablation ("verify every claim").
     verdict_cache_enabled: bool = True
     verdict_cache_path: str = "data/verdicts.sqlite3"
+
+    # Proxy action policy. Mode is per request via the x-sg-mode header; this is the default.
+    default_mode: Literal["annotate", "rewrite", "block"] = "annotate"
+    # rewrite/block only act on STALE claims at or above this judge confidence (annotate reports everything).
+    stale_confidence_threshold: float = 0.7
 
     @property
     def bifrost_openai_base_url(self) -> str:

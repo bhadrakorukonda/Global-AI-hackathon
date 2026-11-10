@@ -1,22 +1,28 @@
-"""Client for the Bifrost gateway: health probe, OpenAI SDK factory, chat forwarding.
+"""Client for the Bifrost gateway: health probe, OpenAI SDK factory, chat forwarding, cache eviction.
 
 Verified Bifrost behaviour this relies on is recorded in docs/bifrost-notes.md.
 """
 
+import logging
 from collections.abc import AsyncIterator, Mapping
 from typing import Any
 
 import httpx
 from openai import AsyncOpenAI
+from pydantic import SecretStr
 
 from staleguard.config import Settings
 from staleguard.schemas import CacheDebug, DependencyHealth, ForwardResult
+
+log = logging.getLogger(__name__)
 
 # Bifrost does not need a client credential when enforce_auth_on_inference=false;
 # the OpenAI SDK insists on *some* api_key, and Bifrost ignores this bearer value.
 _PLACEHOLDER_API_KEY = "staleguard-local"
 
 CHAT_PATH = "/v1/chat/completions"
+CACHE_CLEAR_PATH = "/api/cache/clear/{cache_id}"
+SETUP_TOKEN_HEADER = "X-Bifrost-Setup-Token"
 
 # Request headers forwarded to Bifrost: all Bifrost control headers (x-bf-cache-key,
 # x-bf-cache-ttl, x-bf-cache-threshold, x-bf-cache-no-store, x-bf-cache-type, x-bf-vk, ...).
@@ -93,3 +99,20 @@ async def stream_chat(
             await resp.aclose()
 
     return resp, _iter()
+
+
+async def evict_cache_entry(http: httpx.AsyncClient, cache_id: str, setup_token: SecretStr | None) -> bool:
+    """Delete one semantic-cache entry: DELETE /api/cache/clear/{cache_id} (docs/bifrost-notes.md).
+
+    Never raises: eviction failing must not fail the user's request. Note Bifrost answers 200 even for
+    unknown ids, so True means "request accepted", not "an entry existed".
+    """
+    headers = {SETUP_TOKEN_HEADER: setup_token.get_secret_value()} if setup_token else {}
+    try:
+        resp = await http.delete(CACHE_CLEAR_PATH.format(cache_id=cache_id), headers=headers)
+    except httpx.HTTPError as exc:
+        log.warning("cache eviction of %s failed: %s", cache_id, exc)
+        return False
+    if resp.status_code != 200:
+        log.warning("cache eviction of %s: HTTP %d %s", cache_id, resp.status_code, resp.text[:200])
+    return resp.status_code == 200

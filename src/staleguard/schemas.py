@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 __all__ = [
     "CLASS_TTL",
+    "Action",
     "CacheDebug",
     "Claim",
     "ClaimClass",
@@ -21,7 +22,9 @@ __all__ = [
     "HealthResponse",
     "JudgeLLMItem",
     "JudgeLLMOutput",
+    "Mode",
     "Report",
+    "RewriteLLMOutput",
     "SearchResult",
     "StaleGuardStatus",
     "Verdict",
@@ -73,6 +76,10 @@ class ForwardResult(BaseModel):
 
 # Values of the x-staleguard-status response header / Report.verdict_summary.
 StaleGuardStatus = Literal["clean", "stale", "unverified", "skipped"]
+# Proxy action policy, chosen per request with the x-sg-mode header (SPEC §3 Act).
+Mode = Literal["annotate", "rewrite", "block"]
+# What the proxy did to the answer.
+Action = Literal["none", "rewritten", "blocked"]
 
 # ---------------------------------------------------------------- pipeline domain
 
@@ -150,7 +157,7 @@ class ClaimVerdict(BaseModel):
 
 
 class Report(BaseModel):
-    """The `staleguard` object returned by /verify (and, from step 5, attached to proxied responses)."""
+    """The `staleguard` object: /verify's response body, and attached to every verified proxy response."""
 
     verdict_summary: Literal["clean", "stale", "unverified"]
     claims: list[ClaimVerdict]
@@ -158,9 +165,16 @@ class Report(BaseModel):
     claims_checked: int
     latency_ms: int
     tokens_by_stage: dict[str, int]
+    models_by_stage: dict[str, str] = Field(default_factory=dict, description="Model that actually answered each stage (shows Bifrost failover).")
     tavily_calls: int
     verdict_cache_hits: int = 0
+    # Proxy-only fields (defaults on /verify).
+    mode: Mode = "annotate"
+    action: Action = "none"
+    original_answer: str | None = Field(default=None, description="The upstream answer, when rewrite/block replaced it.")
+    bifrost_cache_hit: bool | None = Field(default=None, description="None when the request sent no x-bf-cache-key.")
     cache_evicted: bool = False
+    evicted_cache_id: str | None = None
 
 
 class VerifyRequest(BaseModel):
@@ -196,3 +210,7 @@ class JudgeLLMItem(BaseModel):
 
 class JudgeLLMOutput(BaseModel):
     verdicts: list[JudgeLLMItem]
+
+
+class RewriteLLMOutput(BaseModel):
+    answer: str = Field(min_length=1)

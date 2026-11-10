@@ -16,10 +16,16 @@ def load_fixture(rel: str) -> Any:
 class FakeLLM:
     """Replies by prompt type (detected from the rendered prompt), in order. Records every call."""
 
-    MARKERS = {"extract": "atomic factual claims", "classify": "Classify each claim", "judge": "careful fact-checker"}
+    MARKERS = {
+        "extract": "atomic factual claims",
+        "classify": "Classify each claim",
+        "judge": "careful fact-checker",
+        "rewrite": "editing an assistant's answer",
+    }
 
-    def __init__(self, **replies: list[str | dict]) -> None:
+    def __init__(self, fail_stages: tuple[str, ...] = (), **replies: list[str | dict]) -> None:
         self.replies = {k: list(v) for k, v in replies.items()}
+        self.fail_stages = fail_stages
         self.calls: list[tuple[str, str, list[dict[str, str]]]] = []
 
     def _stage(self, prompt: str) -> str:
@@ -28,6 +34,8 @@ class FakeLLM:
     async def complete(self, model: str, messages: list[dict[str, str]], reasoning_effort: str | None) -> LLMCompletion:
         stage = self._stage(messages[0]["content"])
         self.calls.append((stage, model, messages))
+        if stage in self.fail_stages:
+            raise RuntimeError(f"{stage} backend down")
         reply = self.replies[stage].pop(0)
         return LLMCompletion(text=reply if isinstance(reply, str) else json.dumps(reply), total_tokens=100)
 

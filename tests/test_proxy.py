@@ -1,4 +1,5 @@
-"""Proxy passthrough tests. Bifrost is mocked with httpx.MockTransport replaying recorded fixtures."""
+"""Proxy passthrough tests (no verification pipeline configured). Bifrost is mocked with httpx.MockTransport
+replaying recorded fixtures. Verification through the proxy is covered in test_guard.py."""
 
 import json
 from pathlib import Path
@@ -35,6 +36,7 @@ def make_client():
         fake = FakeBifrost(handler)
         http = httpx.AsyncClient(base_url="http://bifrost.test", transport=httpx.MockTransport(fake))
         main.app.dependency_overrides[main.get_bifrost_http] = lambda: http
+        main.app.dependency_overrides[main.get_optional_pipeline] = lambda: None
         return TestClient(main.app), fake
 
     yield _make
