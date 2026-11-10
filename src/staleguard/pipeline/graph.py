@@ -89,7 +89,7 @@ class Pipeline:
             return {"cached": cached, "to_verify": to_verify}
 
         async def verify(s: _State) -> _State:
-            return {"searches": await verify_claims(d.tavily, s["to_verify"], s["request"].include_domains)}
+            return {"searches": await verify_claims(d.tavily, s["to_verify"], s["today"], s["request"].include_domains)}
 
         async def judge(s: _State) -> _State:
             verdicts = await judge_claims(

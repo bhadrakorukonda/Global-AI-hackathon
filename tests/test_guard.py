@@ -40,7 +40,7 @@ def stale_llm(confidence: float = 0.9, **extra) -> FakeLLM:
     return FakeLLM(
         extract=[{"claims": [PY_CLAIM]}],
         judge=[{"verdicts": [{"id": 1, "verdict": "STALE", "corrected_claim": "The latest stable version of Python is 3.15.",
-                              "evidence_ids": [2], "confidence": confidence, "rationale": "3.15 is out."}]}],
+                              "evidence_ids": [1], "confidence": confidence, "rationale": "3.15 is out."}]}],
         **extra,
     )
 

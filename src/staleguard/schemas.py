@@ -4,7 +4,7 @@ from datetime import timedelta
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 __all__ = [
     "CLASS_TTL",
@@ -18,6 +18,7 @@ __all__ = [
     "DependencyHealth",
     "Evidence",
     "ExtractLLMOutput",
+    "ExtractedClaim",
     "ForwardResult",
     "HealthResponse",
     "JudgeLLMItem",
@@ -125,6 +126,7 @@ class Claim(BaseModel):
     claim_class: ClaimClass | None = None  # None until classified
     classified_by: Literal["rules", "llm"] | None = None
     signals: list[str] = Field(default_factory=list, description="Names of the rules that fired.")
+    search_query: str | None = Field(default=None, description="Neutral web query for the claim's topic (from extract).")
 
 
 class Evidence(BaseModel):
@@ -186,8 +188,19 @@ class VerifyRequest(BaseModel):
 # ---------------------------------------------------------------- LLM structured outputs
 
 
+class ExtractedClaim(BaseModel):
+    claim: str
+    query: str | None = None
+
+
 class ExtractLLMOutput(BaseModel):
-    claims: list[str]
+    claims: list[ExtractedClaim]
+
+    @field_validator("claims", mode="before")
+    @classmethod
+    def _accept_bare_strings(cls, v: Any) -> Any:
+        """Tolerate a model that returns plain claim strings (no query): the claim text becomes the query."""
+        return [{"claim": c} if isinstance(c, str) else c for c in v] if isinstance(v, list) else v
 
 
 class ClassifyLLMItem(BaseModel):

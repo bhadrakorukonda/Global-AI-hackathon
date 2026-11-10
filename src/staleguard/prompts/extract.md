@@ -1,4 +1,4 @@
-<!-- extract v2 — model: SMALL_MODEL. Placeholders: {{question}}, {{text}} -->
+<!-- extract v3 — model: SMALL_MODEL. Placeholders: {{question}}, {{text}} -->
 You split an AI assistant's answer into atomic factual claims so each one can be fact-checked on its own.
 
 Rules:
@@ -9,7 +9,13 @@ Rules:
 - Skip opinions, advice, instructions, hedges, greetings, and content inside code.
 - If there are no factual claims, return an empty list.
 
-Return only JSON of the form: {"claims": ["...", "..."]}
+For each claim also write `query`: a short, neutral web search query (3–8 words) that would find the **true, up-to-date** answer on the claim's topic. Do not include the value the claim asserts, and do not add a year (one is added automatically):
+- "The latest stable version of Python is 3.12." -> "latest stable Python version"
+- "Sam Altman is the CEO of OpenAI." -> "OpenAI CEO"
+- "GPT-4o costs $5 per million input tokens." -> "GPT-4o API price per million input tokens"
+- "Python 3.12 was released in October 2023." -> "Python 3.12 release date"
+
+Return only JSON of the form: {"claims": [{"claim": "...", "query": "..."}]}
 
 Question (may be empty):
 {{question}}

@@ -9,7 +9,7 @@ from fakes import FakeLLM, FakeTavily, load_fixture
 from staleguard.llm import LLMOutputError, UsageTracker, structured_call
 from staleguard.pipeline import Pipeline, PipelineDeps
 from staleguard.pipeline.extract import strip_code
-from staleguard.pipeline.verify import normalize_date, search_params
+from staleguard.pipeline.verify import normalize_date, search_params, search_query
 from staleguard.schemas import Claim, ClaimClass, ClaimVerdict, ExtractLLMOutput, Verdict, VerifyRequest
 from staleguard.verdict_cache import VerdictCache
 
@@ -33,7 +33,7 @@ def test_stale_claim_end_to_end():
         extract=[{"claims": [PY_CLAIM, "Python was created by Guido van Rossum."]}],
         classify=[{"items": [{"id": 2, "claim_class": "static"}]}],
         judge=[{"verdicts": [{"id": 1, "verdict": "STALE", "corrected_claim": "The latest stable Python is 3.15.",
-                              "evidence_ids": [2, 2, 9], "confidence": 0.9, "rationale": "Newer release exists."}]}],
+                              "evidence_ids": [1, 1, 9], "confidence": 0.9, "rationale": "Newer release exists."}]}],
     )
     tavily = FakeTavily({PY_CLAIM: load_fixture("tavily/general_python_version.json")})
     report = run(make_pipeline(llm, tavily), "Python 3.12 is the latest. Guido made it.")
@@ -43,7 +43,8 @@ def test_stale_claim_end_to_end():
     [v] = report.claims
     assert v.verdict is Verdict.STALE
     assert v.corrected_claim == "The latest stable Python is 3.15."
-    assert [e.url for e in v.evidence] == ["https://en.wikipedia.org/wiki/History_of_Python"]  # dup + out-of-range dropped
+    # evidence is newest first, so [1] is the 2026 Wikipedia page; the dup and out-of-range ids are dropped
+    assert [e.url for e in v.evidence] == ["https://en.wikipedia.org/wiki/History_of_Python"]
     assert v.evidence[0].published_date == "2026-08-08"
     assert v.claim.classified_by == "rules"
     assert llm.stages() == ["extract", "classify", "judge"]
@@ -110,7 +111,7 @@ def test_current_claim_is_clean_and_news_topic_used_for_roles():
     report = run(make_pipeline(llm, tavily), "Sam Altman is OpenAI's CEO.", include_domains=["openai.com"])
     assert report.verdict_summary == "clean"
     [(query, kwargs)] = tavily.calls
-    assert query == CEO_CLAIM
+    assert query == "Sam Altman is the CEO of OpenAI 2026"  # no extractor query -> claim text + year
     assert kwargs["topic"] == "news" and kwargs["time_range"] == "year"
     assert kwargs["include_domains"] == ["openai.com"] and kwargs["include_domains_mode"] == "prefer"
 
@@ -172,14 +173,47 @@ def test_mixed_cached_and_fresh_claims_are_merged_in_order():
     tavily = FakeTavily(default=load_fixture("tavily/general_python_version.json"))
     report = run(_cached_pipeline(llm, tavily, cache), "...")
     assert [(v.claim.id, v.from_cache) for v in report.claims] == [(1, False), (2, True)]
-    assert [q for q, _ in tavily.calls] == [PY_CLAIM]
+    assert [q for q, _ in tavily.calls] == ["The latest stable version of Python is 3.12 2026"]
     assert report.verdict_summary == "stale"
 
 
-def test_search_params_defaults():
-    p = search_params(Claim(id=1, text="x", claim_class=ClaimClass.VERSION), None)
-    assert p == {"search_depth": "basic", "max_results": 5, "include_answer": True, "include_published_date": True}
+def test_search_params_for_claim_about_now():
+    p = search_params(Claim(id=1, text="The latest Python is 3.12", claim_class=ClaimClass.VERSION), None)
+    assert p == {"search_depth": "basic", "max_results": 5, "include_answer": True, "include_published_date": True,
+                 "time_range": "year"}
     assert "days" not in p
+
+
+def test_search_params_for_time_anchored_claim_have_no_recency_filter():
+    role = Claim(id=1, text="Jack Dorsey was CEO of Twitter in 2015.", claim_class=ClaimClass.ROLE)
+    assert "time_range" not in search_params(role, None) and "topic" not in search_params(role, None)
+
+
+@pytest.mark.parametrize(
+    ("text", "query", "expected"),
+    [
+        ("The latest stable version of Python is 3.12.", "latest stable Python version", "latest stable Python version 2026"),
+        ("Python 3.12 was released in October 2023.", "Python 3.12 release date", "Python 3.12 release date"),
+        ("Sam Altman is the CEO of OpenAI.", None, "Sam Altman is the CEO of OpenAI 2026"),
+        ("The latest Node.js LTS is 20.", "Node.js LTS 2026", "Node.js LTS 2026"),  # no double year
+    ],
+)
+def test_search_query(text, query, expected):
+    assert search_query(Claim(id=1, text=text, search_query=query), TODAY) == expected
+
+
+def test_extractor_query_is_used_and_evidence_is_newest_first():
+    llm = FakeLLM(
+        extract=[{"claims": [{"claim": PY_CLAIM, "query": "latest stable Python version"}]}],
+        judge=[{"verdicts": [{"id": 1, "verdict": "STALE", "corrected_claim": "3.15", "evidence_ids": [1], "confidence": 0.9}]}],
+    )
+    tavily = FakeTavily(default=load_fixture("tavily/general_python_version.json"))
+    report = run(make_pipeline(llm, tavily), "Python 3.12 is the latest.")
+    assert tavily.calls[0][0] == "latest stable Python version 2026"
+    judge_prompt = llm.calls[-1][2][0]["content"]
+    dates = [line.split('"')[3] for line in judge_prompt.splitlines() if '"published":' in line and "null" not in line]
+    assert dates == sorted(dates, reverse=True)
+    assert report.claims[0].search_query == "latest stable Python version 2026"
 
 
 @pytest.mark.parametrize(
@@ -215,7 +249,7 @@ def _call(backend: _Backend, usage: UsageTracker):
 
 def test_structured_call_retries_once_then_succeeds():
     backend, usage = _Backend("not json", '```json\n{"claims": ["a"]}\n```'), UsageTracker()
-    assert _call(backend, usage).claims == ["a"]
+    assert [c.claim for c in _call(backend, usage).claims] == ["a"]
     assert len(backend.messages) == 2 and "not valid" in backend.messages[1][-1]["content"]
     assert usage.snapshot() == {"extract": 14}
 

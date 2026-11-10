@@ -44,7 +44,11 @@ class FakeLLM:
 
 
 class FakeTavily:
-    """Returns a recorded Tavily response per query (or a default). Records queries and kwargs."""
+    """Returns a recorded Tavily response per query (or a default). Records queries and kwargs.
+
+    A response key matches any query that starts with it (minus a trailing '.'), because the verify stage
+    appends the current year to queries about the present ("... is 3.12" -> "... is 3.12 2026").
+    """
 
     def __init__(self, responses: dict[str, Any] | None = None, default: Any = None, fail: bool = False) -> None:
         self.responses = responses or {}
@@ -56,4 +60,4 @@ class FakeTavily:
         self.calls.append((query, kwargs))
         if self.fail:
             raise TimeoutError("tavily timed out")
-        return self.responses.get(query, self.default)
+        return next((v for k, v in self.responses.items() if query.startswith(k.rstrip("."))), self.default)

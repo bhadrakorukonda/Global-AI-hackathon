@@ -1,4 +1,9 @@
-"""Stage 1 — split an answer into atomic, self-contained claims (small model)."""
+"""Stage 1 — split an answer into atomic, self-contained claims (small model).
+
+The same call also writes a *neutral* search query per claim (the topic, without the claimed value), at
+no extra LLM cost: searching with the claim text itself pulls in pages that repeat the stale value
+(measured live, docs/bifrost-notes.md §3).
+"""
 
 import re
 
@@ -34,5 +39,8 @@ async def extract_claims(
         usage=usage,
         reasoning_effort="low",
     )
-    texts = [c.strip() for c in out.claims if c and c.strip()]
-    return [Claim(id=i, text=t) for i, t in enumerate(texts, start=1)]
+    kept = [c for c in out.claims if c.claim.strip()]
+    return [
+        Claim(id=i, text=c.claim.strip(), search_query=(c.query or "").strip() or None)
+        for i, c in enumerate(kept, start=1)
+    ]

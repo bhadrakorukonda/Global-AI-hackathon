@@ -165,3 +165,22 @@ Confirmed in `transports/bifrost-http/handlers/cache.go`:
 - **⚠ vs SPEC:** there is **no `days` param** (SPEC doesn't use it, but older examples online do).
 - **⚠ vs SPEC:** `published_date` is returned only when `include_published_date=True`. It's turned on automatically for `topic="news"`. For `general` topic we must pass `include_published_date=True` explicitly, or evidence won't carry dates. ✅ **Verified live (tavily-python 0.8.5, 2026-11-09):** `include_published_date` is not a named parameter, but `search()` forwards `**kwargs` to the API, and every result came back with `published_date`. Dates are **RFC 2822** (`Fri, 04 Jul 2025 20:09:07 GMT`), so `verify.normalize_date` converts them to ISO. 0.8.5 still accepts `days` (legacy); we never pass it. Results also carry `id` and `raw_content` keys. Recorded responses are in `tests/fixtures/tavily/`.
 - Response: `{query, answer?, results[{title, url, content, score, published_date?, raw_content?}], response_time, request_id}`.
+
+### Query policy: A/B tested live (2026-11-10, ~20 credits)
+Problem: corrections were stale themselves ("latest Python is 3.14" when 3.15 is out). The judge was right about the evidence it got; the **evidence** was old, because the query was the claim text, which repeats the stale value ("...Python is 3.12").
+
+| Query | Python latest | Node.js LTS | OpenAI newest | "Python 3.12 release date" |
+|---|---|---|---|---|
+| claim text (old policy) | ✗ 3.14 | ✗ "LTS is 20" | ✗ vague | ✓ |
+| claim + year | ✗ | ✓ | ✓ | n/a |
+| claim + `time_range=year` | ~ mixed | ✗ | ~ | n/a |
+| neutral topic + year | ✗ 3.14 | ✓ 26 | ✓ GPT-6.x | ✓ |
+| **neutral topic + year + `time_range=year`** | **✓ 3.15** | **✓ 26** | **✓ GPT-6.x** | ✗ invents a 2026 date |
+
+Adopted (`pipeline/verify.py`):
+- The extract call also writes a neutral topic query per claim, with no extra LLM call.
+- Claims about *now* (no explicit year) get the current year appended and `time_range="year"`.
+- Claims naming a year are about the past and get neither.
+- Evidence is sorted newest first for the judge.
+
+Live result after the change: Python → 3.15 (devguide.python.org), Node → 26 (nodejs.org), GPT-4o → GPT-6 (openai.com); the historical "3.12 released Oct 2023" is still CURRENT.
