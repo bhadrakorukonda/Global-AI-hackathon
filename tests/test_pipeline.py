@@ -1,6 +1,7 @@
 """Pipeline tests: LLM and Tavily faked; Tavily replies are recorded live responses (tests/fixtures/tavily)."""
 
 import asyncio
+import json
 from datetime import date
 
 import pytest
@@ -9,6 +10,7 @@ from fakes import FakeLLM, FakeTavily, load_fixture
 from staleguard.llm import LLMOutputError, UsageTracker, structured_call
 from staleguard.pipeline import Pipeline, PipelineDeps
 from staleguard.pipeline.extract import strip_code
+from staleguard.pipeline.judge import JUDGE_SNIPPET_CHARS
 from staleguard.pipeline.verify import normalize_date, search_params, search_query
 from staleguard.schemas import Claim, ClaimClass, ClaimVerdict, ExtractLLMOutput, Verdict, VerifyRequest
 from staleguard.verdict_cache import VerdictCache
@@ -210,10 +212,30 @@ def test_extractor_query_is_used_and_evidence_is_newest_first():
     tavily = FakeTavily(default=load_fixture("tavily/general_python_version.json"))
     report = run(make_pipeline(llm, tavily), "Python 3.12 is the latest.")
     assert tavily.calls[0][0] == "latest stable Python version 2026"
-    judge_prompt = llm.calls[-1][2][0]["content"]
-    dates = [line.split('"')[3] for line in judge_prompt.splitlines() if '"published":' in line and "null" not in line]
-    assert dates == sorted(dates, reverse=True)
+    evidence = judge_payload(llm)[0]["evidence"]
+    dates = [e["published"] for e in evidence if e["published"]]
+    assert len(dates) >= 2 and dates == sorted(dates, reverse=True)
     assert report.claims[0].search_query == "latest stable Python version 2026"
+
+
+def judge_payload(llm: FakeLLM) -> list[dict]:
+    """The claims+evidence JSON the judge prompt was rendered with."""
+    prompt = llm.calls[-1][2][0]["content"]
+    return json.loads(prompt.rsplit("(JSON):\n", 1)[1])
+
+
+def test_judge_input_is_trimmed_but_report_keeps_full_evidence():
+    llm = FakeLLM(
+        extract=[{"claims": [PY_CLAIM]}],
+        judge=[{"verdicts": [{"id": 1, "verdict": "STALE", "corrected_claim": "3.15", "evidence_ids": [1], "confidence": 0.9}]}],
+    )
+    tavily = FakeTavily(default=load_fixture("tavily/general_python_version.json"))
+    report = run(make_pipeline(llm, tavily), "Python 3.12 is the latest.")
+    sent = judge_payload(llm)[0]["evidence"]
+    assert all(len(e["snippet"]) <= JUDGE_SNIPPET_CHARS and "url" not in e for e in sent)
+    assert all("/" not in e["source"] and not e["source"].startswith("www.") for e in sent)
+    cited = report.claims[0].evidence[0]
+    assert cited.url.startswith("https://") and len(cited.snippet) > JUDGE_SNIPPET_CHARS  # full evidence kept for the UI
 
 
 @pytest.mark.parametrize(

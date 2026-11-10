@@ -3,15 +3,28 @@
 Batched rather than one call per claim to stay inside Gemini free-tier request limits; the output is
 still one verdict per claim. Evidence rules are enforced in code, not trusted to the model:
 no cited evidence -> UNVERIFIABLE, never STALE.
+
+Token budget: the judge runs on Groq's free tier (8K tokens/min per model), so its input is kept lean:
+snippets cut to JUDGE_SNIPPET_CHARS, sources as bare domains, compact JSON, low reasoning effort.
+Stored Evidence keeps the full snippet and URL for the report and UI.
 """
 
 import json
 from datetime import date
+from urllib.parse import urlsplit
 
 from staleguard.llm import ChatBackend, UsageTracker, structured_call
 from staleguard.schemas import Claim, ClaimVerdict, Evidence, JudgeLLMItem, JudgeLLMOutput, SearchResult, Verdict
 
-__all__ = ["apply_evidence_rules", "judge_claims"]
+__all__ = ["JUDGE_REASONING_EFFORT", "JUDGE_SNIPPET_CHARS", "apply_evidence_rules", "judge_claims"]
+
+JUDGE_SNIPPET_CHARS = 350
+JUDGE_REASONING_EFFORT = "low"
+
+
+def _domain(url: str) -> str:
+    host = urlsplit(url).netloc
+    return host.removeprefix("www.") or url
 
 
 def _judge_input(claims: list[Claim], searches: dict[int, SearchResult]) -> str:
@@ -26,12 +39,13 @@ def _judge_input(claims: list[Claim], searches: dict[int, SearchResult]) -> str:
                 "claim_class": c.claim_class,
                 "search_summary": s.answer if s else None,
                 "evidence": [
-                    {"n": n, "title": e.title, "url": e.url, "published": e.published_date, "snippet": e.snippet}
+                    {"n": n, "source": _domain(e.url), "title": e.title, "published": e.published_date,
+                     "snippet": e.snippet[:JUDGE_SNIPPET_CHARS]}
                     for n, e in enumerate(evidence, start=1)
                 ],
             }
         )
-    return json.dumps(payload, ensure_ascii=False, indent=1)
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
 
 def apply_evidence_rules(claim: Claim, item: JudgeLLMItem | None, evidence: list[Evidence]) -> ClaimVerdict:
@@ -73,6 +87,7 @@ async def judge_claims(
             output_model=JudgeLLMOutput,
             stage="judge",
             usage=usage,
+            reasoning_effort=JUDGE_REASONING_EFFORT,
         )
         items = {v.id: v for v in out.verdicts}
 

@@ -70,6 +70,23 @@ Gemini (AI Studio) is a first-class provider: config key `gemini`, model prefix 
   - `gemini/no-such-model-xyz` with fallbacks `["groq/openai/gpt-oss-20b"]` was answered by Groq in 1.0 s, with `is_fallback: true`.
   - In the step-5 smoke run, the judge on `groq/openai/gpt-oss-120b` hit Groq's 8K TPM, and Bifrost served it from `groq/openai/gpt-oss-20b` with no error surfaced to the client.
 
+### Judge token budget: measured live (2026-11-11)
+Groq free tier is 8K tokens/min and 200K/day per model, and a judge call was 2–6.5K tokens, so the
+judge input was trimmed: snippets 600 → 350 chars (judge input only; stored evidence keeps the full
+snippet and URL), sources as bare domains instead of URLs, compact JSON, `reasoning_effort="low"`.
+Same evidence judged both ways (4 example rows, Tavily results gathered once):
+
+| Item | Before | After | Verdicts |
+|---|---:|---:|---|
+| version-python-latest (3 claims) | 5,657 | 3,384 | same |
+| model-openai-newest (4 claims) | 6,491 | 3,990* | same |
+| role-openai-ceo (1 claim) | 1,994 | 1,373 | same |
+| history-python-312-release (1 claim) | 2,272 | 1,684 | same |
+| **Total** | **16,414** | **10,431 (−36%)** | |
+
+\* answered by the `groq/openai/gpt-oss-20b` fallback (120b was at its per-minute limit), so that row
+is not a clean comparison; the other three alone are −35%.
+
 ### Response content can be a list of parts ⚠ (found live)
 - With Gemini, Bifrost returns `choices[0].message.content` as a **list** of `{"type":"text","text":...}` parts rather than a string, even for plain-text replies. The OpenAI SDK passes the list through unvalidated. `llm.message_text()` joins the parts. When StaleGuard replaces an answer (rewrite/block), it writes a plain string.
 
