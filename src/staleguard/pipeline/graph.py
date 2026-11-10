@@ -32,6 +32,8 @@ class PipelineDeps:
     judge_model: str
     max_claims: int = 5
     verdict_cache: VerdictCache | None = None  # None = verify every claim every time
+    # False = eval baseline "verify every claim": no classify call, static claims are verified too.
+    volatility_filter: bool = True
     today: Callable[[], date] = field(default=date.today)
 
 
@@ -72,6 +74,8 @@ class Pipeline:
             return {"claims": await extract_claims(d.llm, model=d.small_model, text=r.text, question=r.question, usage=s["usage"])}
 
         async def classify(s: _State) -> _State:
+            if not d.volatility_filter:
+                return {"selected": s["claims"][: d.max_claims]}
             claims = await classify_claims(d.llm, model=d.small_model, claims=s["claims"], today=s["today"], usage=s["usage"])
             return {"claims": claims, "selected": select_for_verification(claims, d.max_claims)}
 

@@ -254,6 +254,11 @@ def test_structured_call_retries_once_then_succeeds():
     assert usage.snapshot() == {"extract": 14}
 
 
+def test_extract_output_accepts_bare_list_and_bare_strings():
+    out = ExtractLLMOutput.model_validate([{"claim": "a", "query": "q"}, "b"])
+    assert [(c.claim, c.query) for c in out.claims] == [("a", "q"), ("b", None)]
+
+
 def test_structured_call_gives_up_after_second_failure():
     with pytest.raises(LLMOutputError):
         _call(_Backend("nope", '{"wrong": 1}'), UsageTracker())

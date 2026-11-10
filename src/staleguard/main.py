@@ -1,7 +1,8 @@
 """StaleGuard FastAPI app (API layer: HTTP concerns only).
 
-- POST /v1/chat/completions: transparent proxy to Bifrost. Verification is wired in at step 5, so every
-  response carries x-staleguard-status: skipped.
+- POST /v1/chat/completions: OpenAI-compatible proxy to Bifrost that verifies the answer (staleguard.guard).
+  Headers: x-sg-mode (annotate|rewrite|block), x-sg-include-domains (comma-separated); x-bf-* go to Bifrost.
+  Streams pass through unverified (x-staleguard-status: skipped).
 - POST /verify: run the verification pipeline on arbitrary text (annotate mode).
 - GET /health
 """
@@ -14,47 +15,19 @@ from typing import Any
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
-from tavily import AsyncTavilyClient
 
 from staleguard import __version__
-from staleguard.bifrost_client import (
-    check_bifrost,
-    forwardable_response_headers,
-    make_http_client,
-    make_llm_client,
-    stream_chat,
-)
+from staleguard.bifrost_client import check_bifrost, forwardable_response_headers, make_http_client, stream_chat
 from staleguard.config import Settings, get_settings
+from staleguard.factory import build_pipeline
 from staleguard.guard import DOMAINS_HEADER, MODE_HEADER, STATUS_HEADER, guard_chat, parse_domains, parse_mode
-from staleguard.llm import LLMOutputError, OpenAIChatBackend
-from staleguard.pipeline import Pipeline, PipelineDeps
+from staleguard.llm import LLMOutputError
+from staleguard.pipeline import Pipeline
 from staleguard.schemas import HealthResponse, Report, VerifyRequest
-from staleguard.verdict_cache import VerdictCache
 
 __all__ = ["app"]
 
 log = logging.getLogger("staleguard")
-
-
-
-def build_pipeline(settings: Settings) -> Pipeline | None:
-    """Wire real backends. None when Tavily isn't configured (/verify then answers 503)."""
-    if settings.tavily_api_key is None or not settings.tavily_api_key.get_secret_value():
-        log.warning("TAVILY_API_KEY not set: /verify disabled")
-        return None
-    return Pipeline(
-        PipelineDeps(
-            llm=OpenAIChatBackend(
-                make_llm_client(settings),
-                fallbacks={settings.small_model: settings.small_model_fallbacks, settings.judge_model: settings.judge_model_fallbacks},
-            ),
-            tavily=AsyncTavilyClient(settings.tavily_api_key.get_secret_value()),
-            small_model=settings.small_model,
-            judge_model=settings.judge_model,
-            max_claims=settings.max_claims_per_answer,
-            verdict_cache=VerdictCache(settings.verdict_cache_path) if settings.verdict_cache_enabled else None,
-        )
-    )
 
 
 @asynccontextmanager

@@ -4,7 +4,7 @@ from datetime import timedelta
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 __all__ = [
     "CLASS_TTL",
@@ -195,6 +195,12 @@ class ExtractedClaim(BaseModel):
 
 class ExtractLLMOutput(BaseModel):
     claims: list[ExtractedClaim]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_bare_list(cls, v: Any) -> Any:
+        """Flash-Lite sometimes returns the claims array without the {"claims": ...} wrapper (seen live)."""
+        return {"claims": v} if isinstance(v, list) else v
 
     @field_validator("claims", mode="before")
     @classmethod

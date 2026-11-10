@@ -154,6 +154,14 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
    - **Failover:** internal calls send Bifrost `fallbacks` across providers. `staleguard.models_by_stage` shows which model actually answered.
    - Live demo script: `scripts/smoke_guard.py`.
 6. Eval dataset scaffold + `run_eval.py` + ablation. (**The user fills and verifies the dataset rows.**)
+   *Scaffolded:*
+   - Logic lives in `src/staleguard/evaluation.py` (tested), with `eval/run_eval.py` as the CLI and `eval/README.md` describing the format.
+   - Configs: `verify_all` (no filter, no cache), `guarded` (cold cache) and `guarded_warm` (same answers again).
+   - Scoring is per answer, using the proxy's own action rule.
+   - Only rows with `verified: true` are used.
+   - It runs only with `--yes`; without it, it prints a cost estimate.
+   - It records which judge model actually answered, since failover can mix them.
+   - The chart is added once real results exist.
 7. Streamlit demo.
 8. README: problem, architecture diagram, setup (copy-paste runnable), how Bifrost and Tavily are each used, eval results, limitations.
 
