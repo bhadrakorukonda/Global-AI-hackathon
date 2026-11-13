@@ -68,6 +68,38 @@ def test_fast_path_skips_tavily_and_judge_for_static_answer():
     assert llm.stages() == ["extract", "classify"]
 
 
+def test_extractor_class_makes_fast_path_a_single_llm_call():
+    llm = FakeLLM(extract=[{"claims": [{"claim": "Canberra is the capital of Australia.", "query": "capital of Australia",
+                                         "class": "static"}]}])
+    tavily = FakeTavily()
+    report = run(make_pipeline(llm, tavily), "The capital of Australia is Canberra.")
+    assert llm.stages() == ["extract"] and tavily.calls == []  # no classify call, no search
+    assert report.verdict_summary == "clean" and report.claims_checked == 0
+
+
+def test_rules_override_the_extractor_class_and_missing_classes_fall_back_to_the_classify_call():
+    llm = FakeLLM(
+        extract=[{"claims": [{"claim": PY_CLAIM, "query": "latest stable Python version", "class": "static"},
+                             {"claim": "The Eiffel Tower is in Paris.", "class": "not-a-class"}]}],
+        classify=[{"items": [{"id": 2, "claim_class": "static"}]}],
+        judge=[{"verdicts": [{"id": 1, "verdict": "STALE", "corrected_claim": "3.15", "evidence_ids": [1], "confidence": 0.9}]}],
+    )
+    tavily = FakeTavily(default=load_fixture("tavily/general_python_version.json"))
+    report = run(make_pipeline(llm, tavily), "...")
+    assert llm.stages() == ["extract", "classify", "judge"]
+    sent = llm.calls[1][2][0]["content"].rsplit("(JSON):\n", 1)[1]
+    assert json.loads(sent) == [{"id": 2, "text": "The Eiffel Tower is in Paris."}]  # only the claim without a valid class
+    (v,) = report.claims
+    assert v.claim.claim_class is ClaimClass.VERSION and v.claim.classified_by == "rules"
+
+
+@pytest.mark.parametrize(("raw", "expected"), [("Version ", ClaimClass.VERSION), ("static", ClaimClass.STATIC),
+                                               ("weird", None), (None, None), (3, None)])
+def test_extracted_class_is_parsed_leniently(raw, expected):
+    out = ExtractLLMOutput.model_validate({"claims": [{"claim": "c", "class": raw}]})
+    assert out.claims[0].claim_class is expected
+
+
 def test_no_claims_skips_everything_after_extract():
     llm = FakeLLM(extract=[{"claims": []}])
     report = run(make_pipeline(llm, FakeTavily()), "Happy to help!")

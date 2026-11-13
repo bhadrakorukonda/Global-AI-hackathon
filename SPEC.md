@@ -52,7 +52,7 @@ flowchart LR
 3. The response comes back, including Bifrost's `extra_fields.cache_debug` (`cache_hit`, `hit_type`, `cache_id`) when caching is on.
 4. The pipeline runs on the assistant message:
    - **Extract** (small model via Bifrost): split into atomic, self-contained claims as JSON.
-   - **Filter**: classify each claim into the classes above. Rules first (regex for years, "latest", "$", "CEO", version patterns), small model second. Drop `static`. **Fast path:** if no volatile claims, return immediately.
+   - **Filter**: classify each claim into the classes above. Rules first (regex for years, "latest", "$", "CEO", version patterns), small model second (*implemented:* the extract call proposes the class, so this usually costs no extra call). Drop `static`. **Fast path:** if no volatile claims, return immediately.
    - **Verdict cache lookup**: a normalized claim hash checked against SQLite with a class-based TTL. Hits skip Tavily.
    - **Verify**: per claim, generate 1–2 search queries and call Tavily `search` (use `topic="news"` for events and roles, `time_range` where it helps, `include_answer=True`, `max_results=5` **passed explicitly**: the SDK default is 10). Always pass `include_published_date=True`; it is only on automatically for `topic="news"`, and the judge needs dates. There is no `days` parameter: use `time_range` (`day|week|month|year`) or `start_date`/`end_date`. Optional trusted-domain policy via `include_domains` (e.g. regulators, official docs), with `include_domains_mode="prefer"` for a soft preference.
    - *Implemented:* one search per claim. The extract call also writes a **neutral topic query** per claim ("latest stable Python version", without the claimed value), at no extra LLM cost. Claims about *now* (no explicit year) get the current year appended and `time_range="year"` (`topic="news"` too for `role`/`event_status`); claims naming a year get neither. Evidence is sorted newest first. This was A/B-tested live: querying with the claim text retrieved pages repeating the stale value (docs/bifrost-notes.md §3). A failed search counts as no evidence, which means `UNVERIFIABLE`.
@@ -169,7 +169,7 @@ Streamlit UI: chat box, side-by-side panes, claim chips colored by verdict, evid
    - Each turn shows a status line (verdict, action, Bifrost hit/miss and similarity, eviction), claim cards colored by verdict with corrections and dated evidence links, and a cost footer (added latency, Tavily searches, tokens per stage, models that answered).
    - Run: `uv run streamlit run demo/app.py` (Streamlit is in the `demo` dependency group, installed by default).
    - Known limits (live, 2026-11-11):
-     - The fast path still costs two sequential small-model calls (~8 s). Merging extract and classify into one call would roughly halve it (not done: it changes the pipeline).
+     - ~~The fast path costs two sequential small-model calls (~8 s).~~ Fixed 2026-11-13: extract (prompt v4) also returns a `class` per claim. Classify uses rules first, then that class, and makes its own LLM call only for claims without a valid class. A static answer now adds ~1 s (measured live).
      - The judge can pick a stale correction when a claim's own evidence predates the change (Node "Active LTS" → 24 instead of 26). The prompt now tells it that sources speak as of their dates; sharing evidence across an answer's claims would fix it properly.
 8. README: problem, architecture diagram, setup (copy-paste runnable), how Bifrost and Tavily are each used, eval results, limitations.
 

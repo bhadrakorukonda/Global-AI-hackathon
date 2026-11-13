@@ -109,8 +109,8 @@ flowchart LR
 
    | Stage | File | What it does | Model / service |
    |---|---|---|---|
-   | **Extract** | `extract.py` | Splits the answer into atomic, self-contained claims. For each claim it also writes a *neutral search query* ("latest stable Python version", without the claimed value). | Small model (Gemini Flash-Lite) |
-   | **Filter** | `classify.py` | Puts each claim in a volatility class. Regex rules run first (years, "latest", "$", "CEO", version numbers); the small model handles the rest. `static` claims are dropped. If nothing volatile is left, the answer is returned straight away (**fast path**). At most 5 claims are checked, most volatile first. | Rules + small model |
+   | **Extract** | `extract.py` | Splits the answer into atomic, self-contained claims. For each claim the same call also writes a *neutral search query* ("latest stable Python version", without the claimed value) and proposes a volatility class. | Small model (Gemini Flash-Lite) |
+   | **Filter** | `classify.py` | Puts each claim in a volatility class. Regex rules run first (years, "latest", "$", "CEO", version numbers); otherwise the extractor's proposed class is used. A separate small-model call happens only for claims that got no valid class. `static` claims are dropped. If nothing volatile is left, the answer is returned straight away (**fast path**). At most 5 claims are checked, most volatile first. | Rules + small model |
    | **Verdict cache** | `verdict_cache.py` | A claim judged recently (within its class TTL) reuses that verdict, with no search and no judge call. | SQLite |
    | **Verify** | `verify.py` | One Tavily search per claim, run in parallel. Claims about *now* get the current year added to the query and a one-year recency filter; claims that name a year (historical facts) don't. Evidence is sorted newest first. | Tavily |
    | **Judge** | `judge.py` | One batched call that gives every claim a verdict: `CURRENT`, `STALE` (with a `corrected_claim`), `CONFLICTING` or `UNVERIFIABLE`, plus confidence and cited evidence. **Code enforces the evidence rule:** a verdict without valid citations is downgraded to `UNVERIFIABLE`, never `STALE`. | Judge model (Groq gpt-oss-120b) |
@@ -394,6 +394,7 @@ Full notes, with dates and evidence, are in [`docs/bifrost-notes.md`](docs/bifro
 - **Search queries must not repeat the claim.** Searching "the latest Python is 3.12" returns pages that agree with 3.12. The extract step therefore writes a neutral query ("latest stable Python version") plus the current year and a recency filter. This was A/B-tested live and fixed 3 of 3 wrong corrections. Historical claims ("released in 2023") get no recency filter; with one, Tavily made up a 2026 release date.
 - **Evidence rules are enforced in code, not trusted to the model.** No cited evidence means UNVERIFIABLE, never STALE.
 - **The judge is fed a lean input.** Snippets are cut to 350 characters, sources are given as bare domains, the JSON is compact, and reasoning effort is low. Measured on identical evidence: 36% fewer judge tokens with the same verdicts. This matters because Groq's free tier allows 8K tokens/min.
+- **One small-model call, not two.** Extract also proposes each claim's class, so a separate classify call is only a fallback. A static answer now adds about 1 s instead of 8–16 s (measured live), with slightly fewer tokens. On the 6 example rows, all labels still came out right.
 - **Eviction also happens on cache misses.** Bifrost returns a `cache_id` on a miss too: the id of the entry it just wrote. Evicting it stops a fresh stale answer from being cached in the first place.
 - **The verdict cache key** is a normalized word set of the claim, because the extractor words the same claim differently between runs.
 
@@ -401,10 +402,9 @@ Full notes, with dates and evidence, are in [`docs/bifrost-notes.md`](docs/bifro
 
 ## 12. Known limitations
 
-- **Latency.** Verification adds about 7–25 s per answer on free tiers:
-  - Even the static fast path costs two small-model calls in a row, about 8 s.
-  - Groq's 8K tokens/min limit causes retries under load.
-  - Merging extract and classify into one call would roughly halve the fast path; this is proposed, not done.
+- **Latency.** A static answer adds about 1 s. An answer with time-sensitive claims adds about 5–25 s on free tiers (search plus judge).
+  - Bursts of requests hit free-tier rate limits. Bifrost then retries with backoff, and a single request can stall for a minute or more. Seen live: about 111 s when sending 6 requests back to back.
+  - Pause between demo questions; paid tiers remove this.
 - **Corrections are only as good as the evidence each claim's search returns.** Example: "Node 20 is the current Active LTS" was correctly flagged as stale, but corrected to Node 24 rather than 26. That claim's own search returned only pages written before October's LTS switch. Letting the judge see evidence from all claims in the same answer would fix it; this is proposed, not done.
 - **Streaming responses are not verified** (passed through and marked `skipped`).
 - **Daily quotas.** A full eval run can use up Groq's 200K tokens/day on the 120b model. Bifrost then fails over to the 20b model, and the eval summary flags mixed judge models.

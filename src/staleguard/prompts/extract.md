@@ -1,4 +1,4 @@
-<!-- extract v3 — model: SMALL_MODEL. Placeholders: {{question}}, {{text}} -->
+<!-- extract v4 — model: SMALL_MODEL. Placeholders: {{question}}, {{text}} -->
 You split an AI assistant's answer into atomic factual claims so each one can be fact-checked on its own.
 
 Rules:
@@ -15,7 +15,18 @@ For each claim also write `query`: a short, neutral web search query (3–8 word
 - "GPT-4o costs $5 per million input tokens." -> "GPT-4o API price per million input tokens"
 - "Python 3.12 was released in October 2023." -> "Python 3.12 release date"
 
-Return only JSON of the form: {"claims": [{"claim": "...", "query": "..."}]}
+For each claim also give `class`: how likely it is to go out of date. Pick exactly one:
+- version: software/product version or release ("The latest Python is 3.12")
+- role: who holds a position ("X is the CEO of Y")
+- price: prices, fees, rates, costs
+- statistic: numbers that change over time (population, market share, user counts, rankings)
+- policy: laws, regulations, guidelines, official rules and requirements
+- event_status: state of an ongoing event (pending, announced, scheduled, in progress)
+- relative_time: depends on "now" (latest, current, recently, this year) and fits no class above
+- static: will not change (definitions, science, geography, settled history, math)
+When unsure between static and a volatile class, choose the volatile class.
+
+Return only JSON of the form: {"claims": [{"claim": "...", "query": "...", "class": "..."}]}
 
 Question (may be empty):
 {{question}}

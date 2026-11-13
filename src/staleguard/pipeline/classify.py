@@ -1,7 +1,8 @@
-"""Stage 2 — classify claims by volatility: deterministic rules first, small model for the rest.
+"""Stage 2 — classify claims by volatility: deterministic rules first, then the extractor's class.
 
-Rules only ever mark a claim *volatile*; they never declare one static. Claims no rule matches go to
-the LLM in one batched call, which may answer `static`.
+Rules only ever mark a claim *volatile*; they never declare one static. For claims no rule matches, the
+class the extract call already proposed is used (it may be `static`). Only claims without a valid
+proposal go to a separate batched LLM call (fallback, prompt classify.md).
 """
 
 import json
@@ -58,13 +59,15 @@ def classify_by_rules(text: str, today: date) -> tuple[ClaimClass | None, list[s
 async def classify_claims(
     backend: ChatBackend, *, model: str, claims: list[Claim], today: date, usage: UsageTracker
 ) -> list[Claim]:
-    """Classify every claim. Rule hits skip the LLM; the remainder go in one batched LLM call."""
+    """Classify every claim: rules, else the extractor's class, else one batched LLM call for the rest."""
     classified: list[Claim] = []
     unresolved: list[Claim] = []
     for claim in claims:
         cls, signals = classify_by_rules(claim.text, today)
         if cls is not None:
             classified.append(claim.model_copy(update={"claim_class": cls, "classified_by": "rules", "signals": signals}))
+        elif claim.class_hint is not None:
+            classified.append(claim.model_copy(update={"claim_class": claim.class_hint, "classified_by": "llm", "signals": signals}))
         else:
             unresolved.append(claim)
 

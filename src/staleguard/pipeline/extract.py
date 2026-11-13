@@ -3,6 +3,9 @@
 The same call also writes a *neutral* search query per claim (the topic, without the claimed value), at
 no extra LLM cost: searching with the claim text itself pulls in pages that repeat the stale value
 (measured live, docs/bifrost-notes.md §3).
+
+It also proposes each claim's volatility class (`class_hint`), so the classify stage needs no LLM call
+of its own in the common case: one small-model round trip instead of two on every answer.
 """
 
 import re
@@ -41,6 +44,6 @@ async def extract_claims(
     )
     kept = [c for c in out.claims if c.claim.strip()]
     return [
-        Claim(id=i, text=c.claim.strip(), search_query=(c.query or "").strip() or None)
+        Claim(id=i, text=c.claim.strip(), search_query=(c.query or "").strip() or None, class_hint=c.claim_class)
         for i, c in enumerate(kept, start=1)
     ]

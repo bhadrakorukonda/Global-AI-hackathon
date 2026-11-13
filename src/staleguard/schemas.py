@@ -127,6 +127,7 @@ class Claim(BaseModel):
     classified_by: Literal["rules", "llm"] | None = None
     signals: list[str] = Field(default_factory=list, description="Names of the rules that fired.")
     search_query: str | None = Field(default=None, description="Neutral web query for the claim's topic (from extract).")
+    class_hint: ClaimClass | None = Field(default=None, description="Volatility class the extractor proposed; used when no rule fires.")
 
 
 class Evidence(BaseModel):
@@ -189,8 +190,20 @@ class VerifyRequest(BaseModel):
 
 
 class ExtractedClaim(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     claim: str
     query: str | None = None
+    claim_class: ClaimClass | None = Field(default=None, alias="class")
+
+    @field_validator("claim_class", mode="before")
+    @classmethod
+    def _unknown_class_is_none(cls, v: Any) -> Any:
+        """An unknown class must not fail the whole extraction; classify falls back to its own call."""
+        if isinstance(v, str):
+            v = v.strip().lower()
+            return v if v in {c.value for c in ClaimClass} else None
+        return None if v is not None and not isinstance(v, ClaimClass) else v
 
 
 class ExtractLLMOutput(BaseModel):
