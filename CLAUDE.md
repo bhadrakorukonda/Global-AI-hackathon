@@ -3,7 +3,7 @@
 Read `SPEC.md` first. It is the source of truth for scope, architecture and build order.
 
 ## Context
-- Hackathon prototype, deadline **15 Nov 2026, 11:59 PM IST**. Ship a working, demoable slice over a broad, half-built one.
+- Hackathon prototype, deadline **21 Nov 2026** (extended from 15 Nov; confirm the exact time with the user). Ship a working, demoable slice over a broad, half-built one.
 - Judges will read the README, watch a demo video and skim the repo. A clean setup that actually runs matters.
 
 ## How to work
