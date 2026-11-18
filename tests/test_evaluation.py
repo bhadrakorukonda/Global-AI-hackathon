@@ -7,10 +7,27 @@ from pathlib import Path
 
 import pytest
 from fakes import FakeLLM, FakeTavily, load_fixture
+from pydantic import ValidationError
 
-from staleguard.evaluation import DatasetError, ItemResult, compute_metrics, item_result, load_dataset, render_summary
+from staleguard.evaluation import (
+    DatasetError,
+    ItemResult,
+    RowCheck,
+    apply_checks,
+    compute_metrics,
+    item_result,
+    load_dataset,
+    render_summary,
+)
 from staleguard.pipeline import Pipeline, PipelineDeps
-from staleguard.schemas import Claim, ClaimClass, ClaimVerdict, Report, Verdict, VerifyRequest
+from staleguard.schemas import (
+    Claim,
+    ClaimClass,
+    ClaimVerdict,
+    Report,
+    Verdict,
+    VerifyRequest,
+)
 
 REPO_DATASET = Path(__file__).parent.parent / "eval" / "dataset.jsonl"
 
@@ -48,6 +65,29 @@ def test_dataset_errors_list_every_bad_line(tmp_path):
 def test_unknown_fields_are_rejected(tmp_path):
     with pytest.raises(DatasetError, match="line 1"):
         load_dataset(write(tmp_path, ROW | {"lable": "stale"}))
+
+
+def test_apply_checks_verifies_checked_rows_and_keeps_dropped_rows_unverified(tmp_path):
+    rows = [ROW | {"id": i, "verified": False, "notes": "n"} for i in ("a", "b", "c")]
+    items = load_dataset(write(tmp_path, *rows), include_unverified=True)
+    checks = {
+        "a": RowCheck(status="checked", checked_on="2026-11-19", ground_truth=" fixed ", label="current", note="moved"),
+        "b": RowCheck(status="dropped", checked_on="2026-11-19"),
+    }
+    out, unchecked = apply_checks(items, checks)
+    a, b, c = out
+    assert (a.verified, a.label, a.ground_truth, a.checked_on) == (True, "current", "fixed", "2026-11-19")
+    assert a.notes == "n | checker: moved"
+    assert not b.verified and "dropped by checker" in b.notes
+    assert c == items[2] and unchecked == ["c"]
+
+
+def test_apply_checks_rejects_unknown_ids_and_bad_dates(tmp_path):
+    items = load_dataset(write(tmp_path, ROW), include_unverified=True)
+    with pytest.raises(DatasetError, match="zzz"):
+        apply_checks(items, {"zzz": RowCheck(status="checked", checked_on="2026-11-19")})
+    with pytest.raises(ValidationError):
+        RowCheck(status="checked", checked_on="19/11/2026")
 
 
 def _report(*verdicts: tuple[Verdict, float, str | None]) -> Report:

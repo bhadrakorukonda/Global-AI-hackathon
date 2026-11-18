@@ -23,6 +23,8 @@ __all__ = [
     "DatasetError",
     "EvalItem",
     "ItemResult",
+    "RowCheck",
+    "apply_checks",
     "compute_metrics",
     "item_result",
     "load_dataset",
@@ -73,6 +75,49 @@ def load_dataset(path: str | Path, include_unverified: bool = False) -> list[Eva
     if problems:
         raise DatasetError("\n".join(problems))
     return items if include_unverified else [i for i in items if i.verified]
+
+
+class RowCheck(BaseModel):
+    """One person's check of one dataset row, as exported from the team's Row Checker page."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    status: Literal["checked", "dropped"]
+    checked_on: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    ground_truth: str | None = None
+    label: Label | None = None
+    note: str | None = None
+
+
+def apply_checks(items: list[EvalItem], checks: dict[str, RowCheck]) -> tuple[list[EvalItem], list[str]]:
+    """Merge human checks into dataset rows. Returns (updated items, row ids that got no check).
+
+    checked -> verified=true with the checker's date, and their ground_truth/label when they changed it.
+    dropped -> verified=false with a note, so the runner skips it but the row stays visible for review.
+    """
+    by_id = {i.id: i for i in items}
+    unknown = sorted(set(checks) - set(by_id))
+    if unknown:
+        raise DatasetError(f"checks for ids not in the dataset: {', '.join(unknown)}")
+    out: list[EvalItem] = []
+    for item in items:
+        check = checks.get(item.id)
+        if check is None:
+            out.append(item)
+            continue
+        notes = " | ".join(p for p in (item.notes, check.note and f"checker: {check.note}") if p)
+        update: dict[str, object] = {"checked_on": check.checked_on, "notes": notes}
+        if check.status == "checked":
+            update["verified"] = True
+            if check.ground_truth and check.ground_truth.strip():
+                update["ground_truth"] = check.ground_truth.strip()
+            if check.label:
+                update["label"] = check.label
+        else:
+            update["verified"] = False
+            update["notes"] = " | ".join(p for p in (notes, "dropped by checker") if p)
+        out.append(EvalItem.model_validate({**item.model_dump(by_alias=True), **update}))
+    return out, [i.id for i in items if i.id not in checks]
 
 
 class ItemResult(BaseModel):
