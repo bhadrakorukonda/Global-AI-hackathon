@@ -58,5 +58,6 @@ An answer counts as predicted `stale` when it has a STALE claim with a correctio
 `STALE_CONFIDENCE_THRESHOLD` (0.7). That is the same rule the proxy uses before rewriting or blocking.
 
 ### Budget (free tiers)
-- A full run of 50 items is roughly 300 Tavily credits (basic search = 1 credit) and about 100 judge calls.
+- A full run of 50 items was estimated at about 300 Tavily credits; the real 51-item run used 146 (verify_all 80, guarded 58, guarded_warm 8), because answers average about 1.5 claims. Basic search = 1 credit.
+- After separate per-config runs, `uv run python eval/combine_results.py` merges `results/*/results.jsonl` into `results/summary.md`, `results/results.jsonl` and the chart (`results/chart-light.svg`, `results/chart-dark.svg`).
 - Groq's free tier allows 8K tokens/min and 200K/day per model. When the judge model runs out, Bifrost fails over to the next model, and `summary.md` says so ("Judge model(s) that answered"). For a clean comparison, all configs should be judged by the same model: run on a fresh quota day, or run one config per day with `--configs`.

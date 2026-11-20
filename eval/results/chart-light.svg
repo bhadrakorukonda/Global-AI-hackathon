@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 470" width="920" height="470" role="img" aria-label="StaleGuard eval: accuracy and cost per answer by configuration">
+<rect width="920" height="470" fill="#fcfcfb"/>
+<rect x="24" y="22" width="12" height="12" rx="3" fill="#2a78d6"/>
+<text x="42.0" y="33.0" fill="#52514e" font-size="13" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Check every claim</text>
+<rect x="186" y="22" width="12" height="12" rx="3" fill="#eb6834"/>
+<text x="204.0" y="33.0" fill="#52514e" font-size="13" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard</text>
+<rect x="292" y="22" width="12" height="12" rx="3" fill="#1baf7a"/>
+<text x="310.0" y="33.0" fill="#52514e" font-size="13" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard, warm cache</text>
+<text x="24.0" y="74.0" fill="#0b0b0b" font-size="15" font-weight="600" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Accuracy on 51 hand-checked answers</text>
+<line x1="56" x2="436" y1="396.0" y2="396.0" stroke="#c3c2b7" stroke-width="1"/>
+<text x="48.0" y="400.0" fill="#898781" font-size="11" font-weight="400" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">0%</text>
+<line x1="56" x2="436" y1="321.0" y2="321.0" stroke="#e1e0d9" stroke-width="1"/>
+<text x="48.0" y="325.0" fill="#898781" font-size="11" font-weight="400" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">25%</text>
+<line x1="56" x2="436" y1="246.0" y2="246.0" stroke="#e1e0d9" stroke-width="1"/>
+<text x="48.0" y="250.0" fill="#898781" font-size="11" font-weight="400" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">50%</text>
+<line x1="56" x2="436" y1="171.0" y2="171.0" stroke="#e1e0d9" stroke-width="1"/>
+<text x="48.0" y="175.0" fill="#898781" font-size="11" font-weight="400" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">75%</text>
+<line x1="56" x2="436" y1="96.0" y2="96.0" stroke="#e1e0d9" stroke-width="1"/>
+<text x="48.0" y="100.0" fill="#898781" font-size="11" font-weight="400" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">100%</text>
+<path d="M72.33333333333334,396.0 V100.0 Q72.33333333333334,96.0 76.33333333333334,96.0 H98.33333333333334 Q102.33333333333334,96.0 102.33333333333334,100.0 V396.0 Z" fill="#2a78d6"/>
+<text x="87.3" y="90.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">100%</text>
+<path d="M104.33333333333334,396.0 V121.42857142857144 Q104.33333333333334,117.42857142857144 108.33333333333334,117.42857142857144 H130.33333333333334 Q134.33333333333334,117.42857142857144 134.33333333333334,121.42857142857144 V396.0 Z" fill="#eb6834"/>
+<text x="119.3" y="111.4" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">93%</text>
+<path d="M136.33333333333334,396.0 V110.71428571428572 Q136.33333333333334,106.71428571428572 140.33333333333334,106.71428571428572 H162.33333333333334 Q166.33333333333334,106.71428571428572 166.33333333333334,110.71428571428572 V396.0 Z" fill="#1baf7a"/>
+<text x="151.3" y="100.7" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">96%</text>
+<text x="119.3" y="416.0" fill="#0b0b0b" font-size="12" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Stale answers caught</text>
+<text x="119.3" y="432.0" fill="#898781" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">higher is better</text>
+<path d="M199.00000000000003,396.0 V120.0 Q199.00000000000003,116.0 203.00000000000003,116.0 H225.00000000000003 Q229.00000000000003,116.0 229.00000000000003,120.0 V396.0 Z" fill="#2a78d6"/>
+<text x="214.0" y="110.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">93%</text>
+<path d="M231.00000000000003,396.0 V111.11111111111114 Q231.00000000000003,107.11111111111114 235.00000000000003,107.11111111111114 H257.0 Q261.0,107.11111111111114 261.0,111.11111111111114 V396.0 Z" fill="#eb6834"/>
+<text x="246.0" y="101.1" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">96%</text>
+<path d="M263.0,396.0 V120.68965517241378 Q263.0,116.68965517241378 267.0,116.68965517241378 H289.0 Q293.0,116.68965517241378 293.0,120.68965517241378 V396.0 Z" fill="#1baf7a"/>
+<text x="278.0" y="110.7" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">93%</text>
+<text x="246.0" y="416.0" fill="#0b0b0b" font-size="12" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Flags that were right</text>
+<text x="246.0" y="432.0" fill="#898781" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">higher is better</text>
+<path d="M325.6666666666667,396.0 V373.9130434782609 Q325.6666666666667,369.9130434782609 329.6666666666667,369.9130434782609 H351.6666666666667 Q355.6666666666667,369.9130434782609 355.6666666666667,373.9130434782609 V396.0 Z" fill="#2a78d6"/>
+<text x="340.7" y="363.9" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">9%</text>
+<path d="M357.6666666666667,396.0 V386.95652173913044 Q357.6666666666667,382.95652173913044 361.6666666666667,382.95652173913044 H383.6666666666667 Q387.6666666666667,382.95652173913044 387.6666666666667,386.95652173913044 V396.0 Z" fill="#eb6834"/>
+<text x="372.7" y="377.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">4%</text>
+<path d="M389.6666666666667,396.0 V373.9130434782609 Q389.6666666666667,369.9130434782609 393.6666666666667,369.9130434782609 H415.6666666666667 Q419.6666666666667,369.9130434782609 419.6666666666667,373.9130434782609 V396.0 Z" fill="#1baf7a"/>
+<text x="404.7" y="363.9" fill="#52514e" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">9%</text>
+<text x="372.7" y="416.0" fill="#0b0b0b" font-size="12" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">False alarms</text>
+<text x="372.7" y="432.0" fill="#898781" font-size="11" font-weight="400" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">lower is better</text>
+<text x="500.0" y="74.0" fill="#0b0b0b" font-size="15" font-weight="600" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Cost per answer</text>
+<text x="500.0" y="100.0" fill="#52514e" font-size="12" font-weight="600" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Tavily search credits</text>
+<text x="500.0" y="122.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Check every claim</text>
+<line x1="650" x2="650" y1="108" y2="128" stroke="#c3c2b7"/>
+<path d="M650,110 H832.0 Q836.0,110 836.0,114.0 V122.0 Q836.0,126 832.0,126 H650 Z" fill="#2a78d6"/>
+<text x="842.0" y="122.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">1.57</text>
+<text x="500.0" y="142.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard</text>
+<line x1="650" x2="650" y1="128" y2="148" stroke="#c3c2b7"/>
+<path d="M650,130 H780.85 Q784.85,130 784.85,134.0 V142.0 Q784.85,146 780.85,146 H650 Z" fill="#eb6834"/>
+<text x="790.9" y="142.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">1.14</text>
+<text x="500.0" y="162.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard, warm cache</text>
+<line x1="650" x2="650" y1="148" y2="168" stroke="#c3c2b7"/>
+<path d="M650,150 H664.6 Q668.6,150 668.6,154.0 V162.0 Q668.6,166 664.6,166 H650 Z" fill="#1baf7a"/>
+<text x="674.6" y="162.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">0.16</text>
+<text x="500.0" y="200.0" fill="#52514e" font-size="12" font-weight="600" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Verification tokens</text>
+<text x="500.0" y="222.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Check every claim</text>
+<line x1="650" x2="650" y1="208" y2="228" stroke="#c3c2b7"/>
+<path d="M650,210 H832.0 Q836.0,210 836.0,214.0 V222.0 Q836.0,226 832.0,226 H650 Z" fill="#2a78d6"/>
+<text x="842.0" y="222.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">2,877</text>
+<text x="500.0" y="242.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard</text>
+<line x1="650" x2="650" y1="228" y2="248" stroke="#c3c2b7"/>
+<path d="M650,230 H801.359187568157 Q805.359187568157,230 805.359187568157,234.0 V242.0 Q805.359187568157,246 801.359187568157,246 H650 Z" fill="#eb6834"/>
+<text x="811.4" y="242.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">2,403</text>
+<text x="500.0" y="262.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard, warm cache</text>
+<line x1="650" x2="650" y1="248" y2="268" stroke="#c3c2b7"/>
+<path d="M650,250 H713.1866684841875 Q717.1866684841875,250 717.1866684841875,254.0 V262.0 Q717.1866684841875,266 713.1866684841875,266 H650 Z" fill="#1baf7a"/>
+<text x="723.2" y="262.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">1,039</text>
+<text x="500.0" y="300.0" fill="#52514e" font-size="12" font-weight="600" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Median added latency</text>
+<text x="500.0" y="322.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">Check every claim</text>
+<line x1="650" x2="650" y1="308" y2="328" stroke="#c3c2b7"/>
+<path d="M650,310 H832.0 Q836.0,310 836.0,314.0 V322.0 Q836.0,326 832.0,326 H650 Z" fill="#2a78d6"/>
+<text x="842.0" y="322.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">6.1 s</text>
+<text x="500.0" y="342.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard</text>
+<line x1="650" x2="650" y1="328" y2="348" stroke="#c3c2b7"/>
+<path d="M650,330 H794.1746368532724 Q798.1746368532724,330 798.1746368532724,334.0 V342.0 Q798.1746368532724,346 794.1746368532724,346 H650 Z" fill="#eb6834"/>
+<text x="804.2" y="342.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">4.9 s</text>
+<text x="500.0" y="362.0" fill="#898781" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">StaleGuard, warm cache</text>
+<line x1="650" x2="650" y1="348" y2="368" stroke="#c3c2b7"/>
+<path d="M650,350 H680.6985474130896 Q684.6985474130896,350 684.6985474130896,354.0 V362.0 Q684.6985474130896,366 680.6985474130896,366 H650 Z" fill="#1baf7a"/>
+<text x="690.7" y="362.0" fill="#52514e" font-size="11" font-weight="400" text-anchor="start" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">1.1 s</text>
+</svg>

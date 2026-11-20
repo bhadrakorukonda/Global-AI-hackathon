@@ -37,9 +37,9 @@ Built for the **Global AI Hackathon (Geek Room × HackCulture)**. The problem st
 | 3 | `/verify` endpoint: extract → filter → verify → judge pipeline (LangGraph), annotate mode | ✅ Done |
 | 4 | Verdict cache (SQLite, per-class TTL) and fast path for static answers | ✅ Done |
 | 5 | Pipeline wired into the proxy; `rewrite` and `block` modes; Bifrost cache eviction; cross-provider failover | ✅ Done |
-| 6 | Eval scaffold: dataset format, runner, metrics, verify-every-claim baseline | ✅ Done; **dataset still needs real rows** |
+| 6 | Eval: 51 hand-checked answers, runner, metrics, verify-every-claim baseline | ✅ Done: **93% of stale answers caught, 4% false alarms** ([§10](#10-evaluation)) |
 | 7 | Streamlit demo UI | ✅ Done |
-| 8 | Final README, eval results and chart, demo video | 🟡 This README is the first version. Eval numbers come after the dataset is filled in. |
+| 8 | Final README, eval results and chart, demo video | ✅ README and eval chart done; demo video and slides by the team |
 
 **What works today, verified live:**
 - An app calls StaleGuard exactly as it would call OpenAI. StaleGuard forwards the call to Bifrost, gets the answer, and verifies it before returning it.
@@ -54,9 +54,10 @@ Built for the **Global AI Hackathon (Geek Room × HackCulture)**. The problem st
 
 - **No false alarm on historical facts:** "Python 3.12 was released in Oct 2023" stays CURRENT.
 - **Static answers take the fast path:** "Canberra is the capital of Australia" triggers 0 web searches.
-- 140 unit tests pass, with all external calls mocked.
+- **Measured on 51 hand-checked answers:** catches 93% of stale answers with 4% false alarms, using 27% fewer search credits than checking every claim, and 90% fewer on repeated questions ([§10](#10-evaluation)).
+- 149 unit tests pass, with all external calls mocked.
 
-**Open items:** see [§13](#13-whats-next-and-how-to-help). The most important one is filling in the eval dataset.
+**Open items:** see [§13](#13-whats-next-and-how-to-help).
 
 ---
 
@@ -340,7 +341,7 @@ tests/                    pytest suite; fakes.py + fixtures/ hold recorded Bifro
 ## 9. Tests
 
 ```bash
-uv run pytest -q          # 140 tests, ~3 s, no network: Tavily and LLM calls use fakes and recorded fixtures
+uv run pytest -q          # 149 tests, ~3 s, no network: Tavily and LLM calls use fakes and recorded fixtures
 ```
 
 Coverage includes:
@@ -361,10 +362,39 @@ The eval answers two questions:
 
 Full details: [`eval/README.md`](eval/README.md).
 
-- **Dataset** (`eval/dataset.jsonl`): about 50 hand-labeled answers.
-  - About 25 are **stale** (real facts that changed in the last ~18 months, with the answer written as of before the change).
-  - About 25 are **current**, including static and historical facts, to catch false alarms.
-  - Every row has a source URL that **a person** checked.
+### Results (run 20–21 Nov 2026)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="eval/results/chart-dark.svg">
+  <img alt="Accuracy and cost per answer for check-every-claim, StaleGuard and StaleGuard with a warm cache" src="eval/results/chart-light.svg">
+</picture>
+
+| Config | Stale answers caught | Flags that were right | False alarms | Median added latency | Tokens / answer | Tavily credits / answer |
+|---|---|---|---|---|---|---|
+| Check every claim (`verify_all`) | 100% (28/28) | 93% | 9% (2/23) | 6.1 s | 2,877 | 1.57 |
+| **StaleGuard** (`guarded`) | **93% (26/28)** | **96%** | **4% (1/23)** | **4.9 s** | **2,403** | **1.14** |
+| StaleGuard, warm cache (`guarded_warm`) | 96% (27/28) | 93% | 9% (2/23) | 1.1 s | 1,039 | 0.16 |
+
+Full numbers and every misclassified item: [`eval/results/summary.md`](eval/results/summary.md). Raw per-item results: `eval/results/results.jsonl`.
+
+**What the numbers say:**
+- **StaleGuard catches 26 of 28 stale answers with one false alarm in 23 correct ones**, at 27% fewer search credits, 16% fewer tokens and 20% less added latency than checking every claim.
+- **Its two misses were the judge, not the filter.** For the Nestlé CEO and Bank of England rows, StaleGuard did search the claim, but the judge returned "can't confirm" instead of "stale". The check-every-claim run caught both, though its Bank of England correction was itself wrong (3.75%; the true rate is 4%). The eval scores the stale flag, not the correction.
+- **Facts that never change cost nothing.** Check-every-claim spent 13 search credits on the 8 static answers; StaleGuard spent 0.
+- **The filter's saving is modest here** because the test answers are short (about 1.5 claims each, mostly one changeable fact). The saving grows with longer answers that mix static and changeable claims, but this dataset doesn't measure that.
+- **Repeated questions are where the cost drops most:** with a warm verdict cache, StaleGuard needs 0.16 credits per answer (90% fewer than check-every-claim) and adds 1.1 s.
+- **Recurring false alarm:** "Go 1.27 is the newest Go release" was flagged in every config, though go.dev lists 1.27 as the latest.
+
+**Caveats:**
+- **Judge model:** Groq's free daily quota ran out partway through, so Bifrost failed over to `gpt-oss-20b` for 3 of 51 check-every-claim answers and 1 of 51 StaleGuard answers. All other answers were judged by `gpt-oss-120b`.
+- **One run each:** with 51 items, one answer is about 2 points of recall, so differences of a few points are within run-to-run noise.
+
+### How the eval works
+
+- **Dataset** (`eval/dataset.jsonl`): 51 answers, **28 stale** and **23 current**, each checked by a person against its source on 2026-11-20.
+  - **Stale:** real facts that changed in roughly the last 18 months (library versions, CEOs, heads of government, prices, rates, a regulation deadline), with the answer written as of before the change.
+  - **Current:** static facts, historical facts that mention old versions or people (false-alarm traps), and up-to-date facts stated correctly.
+  - How rows were made: drafted from web research with official source links, then each one confirmed or corrected by a person on a checker page and imported with `eval/import_checks.py`.
 - **Configs compared:**
 
   | Config | What it does |
@@ -378,10 +408,12 @@ Full details: [`eval/README.md`](eval/README.md).
 
   ```bash
   uv run python eval/run_eval.py          # validates the dataset and prints a cost estimate; spends nothing
-  uv run python eval/run_eval.py --yes    # full run: about 300 Tavily credits; writes eval/results/
+  uv run python eval/run_eval.py --yes    # full run: about 150 Tavily credits; writes eval/results/
+  # Groq's free quota can't judge all configs in one day, so we ran them separately and merged:
+  uv run python eval/run_eval.py --configs guarded,guarded_warm --out eval/results/guarded --yes
+  uv run python eval/run_eval.py --configs verify_all --out eval/results/verify_all --yes
+  uv run python eval/combine_results.py   # merged summary.md, results.jsonl and the chart; spends nothing
   ```
-
-**Status:** the runner works end to end; a smoke run on 3 example rows completed. **The dataset still needs real, verified rows**; see §13. The 6 example rows are marked `verified: false`, so the runner ignores them until someone checks them. Results go in this section after the full run.
 
 ---
 
@@ -415,12 +447,10 @@ Full notes, with dates and evidence, are in [`docs/bifrost-notes.md`](docs/bifro
 
 | # | Task | Who | Notes |
 |---|---|---|---|
-| 1 | **Fill in the eval dataset**: about 50 rows (25 stale, 25 current) in `eval/dataset.jsonl`. | Anyone (no code needed) | Follow the rules in `eval/README.md`. Find real facts that changed recently; open the official source; set `"verified": true` and `checked_on`. **Don't let an LLM write the ground truth.** The 6 example rows also need checking. |
-| 2 | Run the full eval and commit `eval/results/` and a chart. | After #1 | Spends about 300 Tavily credits. Run on a fresh Groq quota day. |
-| 3 | Decide on and implement the two latency/accuracy improvements in §12. | Dev | Architecture changes; agree on them first. |
-| 4 | Final README pass: eval results, chart, demo GIF. | Dev | |
-| 5 | Record a demo video of about 3 minutes, following the script in SPEC §7. | Anyone | Use the demo UI's sidebar buttons. The Python question gives the most reliable correction. |
-| 6 | Slides: the problem (SPEC §2), the architecture, why Bifrost, the eval numbers. | Anyone | |
+| 1 | Record a demo video of about 3 minutes, following the script in SPEC §7. | Anyone | Use the demo UI's sidebar buttons. The Python question gives the most reliable correction. |
+| 2 | Slides: the problem (SPEC §2), the architecture, why Bifrost, the eval numbers (chart in `eval/results/`). | Anyone | |
+| 3 | Reduce judge "can't confirm" answers on clearly stale claims (both eval misses). | Dev | Ideas in §12: share evidence across an answer's claims; retry the search with a sharper query. |
+| 4 | Grow the dataset with longer, multi-claim answers, where the volatility filter should save more. | Anyone | Same rules: a person checks every row. |
 
 **Good first steps for a new teammate:**
 1. Read §1–§3 of this README, then `SPEC.md`.
