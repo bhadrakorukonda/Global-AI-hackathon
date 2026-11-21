@@ -3,7 +3,7 @@
 > **Semantic caching makes LLM apps cheap. It also makes them stale.**
 > StaleGuard sits in front of the [Bifrost](https://github.com/maximhq/bifrost) LLM gateway. It finds the time-sensitive claims in an answer, checks them against the live web with [Tavily](https://tavily.com), corrects or blocks the answer with citations, and evicts the stale entry from Bifrost's semantic cache so it is never served again.
 
-Built for the **Global AI Hackathon (Geek Room × HackCulture)**. The problem statement is *Open-Source Bifrost Gateway*, with the Tavily *Stale-Answer Detector* integration. Submission deadline: **15 Nov 2026, 11:59 PM IST**.
+Built for the **Global AI Hackathon (Geek Room × HackCulture)**. The problem statement is *Open-Source Bifrost Gateway*, with the Tavily *Stale-Answer Detector* integration. Submission deadline: **21 Nov 2026** (extended from 15 Nov).
 
 ---
 
