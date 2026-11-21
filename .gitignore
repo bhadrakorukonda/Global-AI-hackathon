@@ -16,3 +16,6 @@ bifrost/data/
 
 # staleguard runtime data (verdict cache)
 /data/
+
+# local recordings (too big for GitHub; the demo is on YouTube)
+*.mp4

@@ -3,6 +3,8 @@
 > **Semantic caching makes LLM apps cheap. It also makes them stale.**
 > StaleGuard sits in front of the [Bifrost](https://github.com/maximhq/bifrost) LLM gateway. It finds the time-sensitive claims in an answer, checks them against the live web with [Tavily](https://tavily.com), corrects or blocks the answer with citations, and evicts the stale entry from Bifrost's semantic cache so it is never served again.
 
+**▶ [Watch the demo video](https://youtu.be/qi8FkG6agTk)**
+
 Built for the **Global AI Hackathon (Geek Room × HackCulture)**. The problem statement is *Open-Source Bifrost Gateway*, with the Tavily *Stale-Answer Detector* integration. Submission deadline: **21 Nov 2026** (extended from 15 Nov).
 
 ---
@@ -39,7 +41,7 @@ Built for the **Global AI Hackathon (Geek Room × HackCulture)**. The problem st
 | 5 | Pipeline wired into the proxy; `rewrite` and `block` modes; Bifrost cache eviction; cross-provider failover | ✅ Done |
 | 6 | Eval: 51 hand-checked answers, runner, metrics, verify-every-claim baseline | ✅ Done: **93% of stale answers caught, 4% false alarms** ([§10](#10-evaluation)) |
 | 7 | Streamlit demo UI | ✅ Done |
-| 8 | Final README, eval results and chart, demo video | ✅ README and eval chart done; demo video and slides by the team |
+| 8 | Final README, eval results and chart, demo video | ✅ Done: [demo video](https://youtu.be/qi8FkG6agTk) |
 
 **What works today, verified live:**
 - An app calls StaleGuard exactly as it would call OpenAI. StaleGuard forwards the call to Bifrost, gets the answer, and verifies it before returning it.
@@ -447,10 +449,8 @@ Full notes, with dates and evidence, are in [`docs/bifrost-notes.md`](docs/bifro
 
 | # | Task | Who | Notes |
 |---|---|---|---|
-| 1 | Record a demo video of about 3 minutes, following the script in SPEC §7. | Anyone | Use the demo UI's sidebar buttons. The Python question gives the most reliable correction. |
-| 2 | Slides: the problem (SPEC §2), the architecture, why Bifrost, the eval numbers (chart in `eval/results/`). | Anyone | |
-| 3 | Reduce judge "can't confirm" answers on clearly stale claims (both eval misses). | Dev | Ideas in §12: share evidence across an answer's claims; retry the search with a sharper query. |
-| 4 | Grow the dataset with longer, multi-claim answers, where the volatility filter should save more. | Anyone | Same rules: a person checks every row. |
+| 1 | Reduce judge "can't confirm" answers on clearly stale claims (both eval misses). | Dev | Ideas in §12: share evidence across an answer's claims; retry the search with a sharper query. |
+| 2 | Grow the dataset with longer, multi-claim answers, where the volatility filter should save more. | Anyone | Same rules: a person checks every row. |
 
 **Good first steps for a new teammate:**
 1. Read §1–§3 of this README, then `SPEC.md`.
